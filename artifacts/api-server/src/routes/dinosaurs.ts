@@ -12,9 +12,10 @@ router.get("/dinosaurs", async (req, res) => {
       dinosaurs = await db
         .select()
         .from(dinosaursTable)
-        .where(ilike(dinosaursTable.name, `%${search.trim()}%`));
+        .where(ilike(dinosaursTable.name, `%${search.trim()}%`))
+        .orderBy(dinosaursTable.id);
     } else {
-      dinosaurs = await db.select().from(dinosaursTable);
+      dinosaurs = await db.select().from(dinosaursTable).orderBy(dinosaursTable.id);
     }
     res.json(dinosaurs);
   } catch (err) {
