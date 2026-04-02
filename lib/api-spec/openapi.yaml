@@ -137,6 +137,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /dinosaurs/{id}/fetch-image:
+    post:
+      operationId: fetchDinosaurImage
+      tags: [dinosaurs]
+      summary: Search for and save a dinosaur image
+      description: Searches Wikipedia for a matching image for the dinosaur and saves the URL to the database
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated dinosaur with image URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dinosaur"
+        "404":
+          description: Dinosaur not found or no image found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:

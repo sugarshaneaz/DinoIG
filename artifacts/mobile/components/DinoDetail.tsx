@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,19 +6,40 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { fetchDinosaurImage } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
 
 interface DinoDetailProps {
   dinosaur: Dinosaur;
+  onImageFetched?: (updated: Dinosaur) => void;
 }
 
-export function DinoDetail({ dinosaur }: DinoDetailProps) {
+export function DinoDetail({ dinosaur, onImageFetched }: DinoDetailProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
+
+  const handleFetchImage = async () => {
+    setFetching(true);
+    setFetchError(false);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const updated = await fetchDinosaurImage(dinosaur.id);
+      onImageFetched?.(updated);
+    } catch {
+      setFetchError(true);
+    } finally {
+      setFetching(false);
+    }
+  };
 
   return (
     <ScrollView
@@ -28,20 +49,71 @@ export function DinoDetail({ dinosaur }: DinoDetailProps) {
       }}
     >
       {dinosaur.imageUrl ? (
-        <Image
-          source={{ uri: dinosaur.imageUrl }}
-          style={styles.heroImage}
-          resizeMode="cover"
-        />
+        <View>
+          <Image
+            source={{ uri: dinosaur.imageUrl }}
+            style={styles.heroImage}
+            resizeMode="cover"
+          />
+          <TouchableOpacity
+            style={[
+              styles.changeImageBtn,
+              { backgroundColor: "rgba(0,0,0,0.5)" },
+            ]}
+            onPress={handleFetchImage}
+            disabled={fetching}
+            activeOpacity={0.8}
+          >
+            {fetching ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Feather name="refresh-cw" size={14} color="#fff" />
+                <Text style={styles.changeImageText}>Find new image</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       ) : (
-        <View
+        <TouchableOpacity
           style={[
             styles.heroPlaceholder,
-            { backgroundColor: colors.imagePlaceholder },
+            {
+              backgroundColor: colors.imagePlaceholder,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
+            },
           ]}
+          onPress={handleFetchImage}
+          disabled={fetching}
+          activeOpacity={0.8}
         >
-          <Feather name="image" size={64} color={colors.mutedForeground} />
-        </View>
+          {fetching ? (
+            <>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.placeholderText, { color: colors.mutedForeground }]}>
+                Searching Wikipedia...
+              </Text>
+            </>
+          ) : fetchError ? (
+            <>
+              <Feather name="alert-circle" size={40} color={colors.destructive} />
+              <Text style={[styles.placeholderText, { color: colors.destructive }]}>
+                No image found — tap to retry
+              </Text>
+            </>
+          ) : (
+            <>
+              <Feather name="camera" size={40} color={colors.primary} />
+              <Text style={[styles.placeholderText, { color: colors.primary }]}>
+                Tap to find an image
+              </Text>
+              <Text style={[styles.placeholderSub, { color: colors.mutedForeground }]}>
+                Searches Wikipedia automatically
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
       )}
 
       <View style={[styles.content, { backgroundColor: colors.background }]}>
@@ -118,11 +190,36 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 260,
   },
+  changeImageBtn: {
+    position: "absolute",
+    bottom: 12,
+    right: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  changeImageText: {
+    color: "#fff",
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+  },
   heroPlaceholder: {
     width: "100%",
-    height: 260,
+    height: 220,
     alignItems: "center",
     justifyContent: "center",
+    gap: 10,
+  },
+  placeholderText: {
+    fontSize: 16,
+    fontFamily: "Inter_500Medium",
+  },
+  placeholderSub: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
   },
   content: {
     padding: 20,

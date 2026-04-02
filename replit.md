@@ -16,6 +16,11 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Artifacts
+
+- **artifacts/mobile** — Expo mobile app (Dinosaur Explorer). Search dinosaurs, view details, fetch images from Wikipedia.
+- **artifacts/api-server** — Express API server with PostgreSQL. Dinosaur CRUD + Wikipedia image search endpoint.
+
 ## Structure
 
 ```text

@@ -547,3 +547,88 @@ export const useDeleteDinosaur = <
 > => {
   return useMutation(getDeleteDinosaurMutationOptions(options));
 };
+
+/**
+ * Searches Wikipedia for a matching image for the dinosaur and saves the URL to the database
+ * @summary Search for and save a dinosaur image
+ */
+export const getFetchDinosaurImageUrl = (id: number) => {
+  return `/api/dinosaurs/${id}/fetch-image`;
+};
+
+export const fetchDinosaurImage = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Dinosaur> => {
+  return customFetch<Dinosaur>(getFetchDinosaurImageUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getFetchDinosaurImageMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof fetchDinosaurImage>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof fetchDinosaurImage>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["fetchDinosaurImage"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof fetchDinosaurImage>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return fetchDinosaurImage(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type FetchDinosaurImageMutationResult = NonNullable<
+  Awaited<ReturnType<typeof fetchDinosaurImage>>
+>;
+
+export type FetchDinosaurImageMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Search for and save a dinosaur image
+ */
+export const useFetchDinosaurImage = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof fetchDinosaurImage>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof fetchDinosaurImage>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getFetchDinosaurImageMutationOptions(options));
+};

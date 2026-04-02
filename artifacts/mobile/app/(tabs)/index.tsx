@@ -22,6 +22,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [localOverrides, setLocalOverrides] = useState<Record<number, Dinosaur>>({});
 
   const { data: dinosaurs, isLoading, error, refetch } = useGetDinosaurs(
     search ? { search } : {}
@@ -29,6 +30,7 @@ export default function HomeScreen() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    setLocalOverrides({});
     await refetch();
     setRefreshing(false);
   }, [refetch]);
@@ -39,6 +41,12 @@ export default function HomeScreen() {
     },
     [router]
   );
+
+  const handleImageFetched = useCallback((updated: Dinosaur) => {
+    setLocalOverrides((prev) => ({ ...prev, [updated.id]: updated }));
+  }, []);
+
+  const mergedDinosaurs = (dinosaurs ?? []).map((d) => localOverrides[d.id] ?? d);
 
   const topPadding = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
 
@@ -77,10 +85,14 @@ export default function HomeScreen() {
         </View>
       ) : (
         <FlatList
-          data={dinosaurs ?? []}
+          data={mergedDinosaurs}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
-            <DinoCard dinosaur={item} onPress={() => handlePress(item)} />
+            <DinoCard
+              dinosaur={item}
+              onPress={() => handlePress(item)}
+              onImageFetched={handleImageFetched}
+            />
           )}
           contentContainerStyle={[
             styles.list,
@@ -96,7 +108,7 @@ export default function HomeScreen() {
               tintColor={colors.primary}
             />
           }
-          scrollEnabled={!!(dinosaurs && dinosaurs.length > 0)}
+          scrollEnabled={!!(mergedDinosaurs.length > 0)}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>

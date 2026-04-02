@@ -1,20 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGetDinosaur } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
 import { DinoDetail } from "@/components/DinoDetail";
+import type { Dinosaur } from "@workspace/api-client-react";
 
 export default function DetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const numericId = parseInt(id ?? "0", 10);
+  const [imageOverride, setImageOverride] = useState<Dinosaur | null>(null);
 
   const { data: dinosaur, isLoading, error } = useGetDinosaur(numericId, {
     query: { enabled: !!numericId },
   });
+
+  const displayDinosaur = imageOverride ?? dinosaur;
 
   const topPadding = Platform.OS === "web" ? Math.max(insets.top, 67) : 0;
 
@@ -22,7 +26,7 @@ export default function DetailScreen() {
     <>
       <Stack.Screen
         options={{
-          title: dinosaur?.name ?? "Dinosaur",
+          title: displayDinosaur?.name ?? "Dinosaur",
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.primary,
           headerTitleStyle: {
@@ -44,14 +48,17 @@ export default function DetailScreen() {
           <View style={styles.center}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
-        ) : error || !dinosaur ? (
+        ) : error || !displayDinosaur ? (
           <View style={styles.center}>
             <Text style={[styles.errorText, { color: colors.destructive }]}>
               {error ? "Failed to load dinosaur" : "Dinosaur not found"}
             </Text>
           </View>
         ) : (
-          <DinoDetail dinosaur={dinosaur} />
+          <DinoDetail
+            dinosaur={displayDinosaur}
+            onImageFetched={setImageOverride}
+          />
         )}
       </View>
     </>

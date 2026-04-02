@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,18 +6,38 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
+import { fetchDinosaurImage } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
 
 interface DinoCardProps {
   dinosaur: Dinosaur;
   onPress: () => void;
+  onImageFetched?: (updated: Dinosaur) => void;
 }
 
-export function DinoCard({ dinosaur, onPress }: DinoCardProps) {
+export function DinoCard({ dinosaur, onPress, onImageFetched }: DinoCardProps) {
   const colors = useColors();
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
+
+  const handleFetchImage = async () => {
+    setFetching(true);
+    setFetchError(false);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const updated = await fetchDinosaurImage(dinosaur.id);
+      onImageFetched?.(updated);
+    } catch {
+      setFetchError(true);
+    } finally {
+      setFetching(false);
+    }
+  };
 
   return (
     <TouchableOpacity
@@ -40,14 +60,47 @@ export function DinoCard({ dinosaur, onPress }: DinoCardProps) {
             resizeMode="cover"
           />
         ) : (
-          <View
+          <TouchableOpacity
             style={[
               styles.imagePlaceholder,
-              { backgroundColor: colors.imagePlaceholder, borderRadius: 12 },
+              {
+                backgroundColor: fetching
+                  ? colors.secondary
+                  : colors.imagePlaceholder,
+                borderRadius: 12,
+                borderWidth: 1.5,
+                borderColor: fetchError ? colors.destructive : colors.border,
+                borderStyle: "dashed",
+              },
             ]}
+            onPress={handleFetchImage}
+            disabled={fetching}
+            activeOpacity={0.7}
           >
-            <Feather name="image" size={32} color={colors.mutedForeground} />
-          </View>
+            {fetching ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : fetchError ? (
+              <>
+                <Feather
+                  name="alert-circle"
+                  size={20}
+                  color={colors.destructive}
+                />
+                <Text
+                  style={[styles.fetchLabel, { color: colors.destructive }]}
+                >
+                  Retry
+                </Text>
+              </>
+            ) : (
+              <>
+                <Feather name="camera" size={20} color={colors.primary} />
+                <Text style={[styles.fetchLabel, { color: colors.primary }]}>
+                  Find
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
         )}
       </View>
       <View style={styles.info}>
@@ -123,6 +176,11 @@ const styles = StyleSheet.create({
     height: 90,
     alignItems: "center",
     justifyContent: "center",
+    gap: 4,
+  },
+  fetchLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
   },
   info: {
     flex: 1,

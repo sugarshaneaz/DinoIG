@@ -96,3 +96,22 @@ export const UpdateDinosaurResponse = zod.object({
 export const DeleteDinosaurParams = zod.object({
   id: zod.coerce.number(),
 });
+
+/**
+ * Searches Wikipedia for a matching image for the dinosaur and saves the URL to the database
+ * @summary Search for and save a dinosaur image
+ */
+export const FetchDinosaurImageParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const FetchDinosaurImageResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  period: zod.string(),
+  diet: zod.string(),
+  imageUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
