@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dinosaurs
+    description: Dinosaur operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,117 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dinosaurs:
+    get:
+      operationId: getDinosaurs
+      tags: [dinosaurs]
+      summary: List all dinosaurs
+      description: Returns all dinosaurs, optionally filtered by search query
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search dinosaurs by name
+      responses:
+        "200":
+          description: List of dinosaurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dinosaur"
+    post:
+      operationId: createDinosaur
+      tags: [dinosaurs]
+      summary: Create a dinosaur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDinosaur"
+      responses:
+        "201":
+          description: Created dinosaur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dinosaur"
+  /dinosaurs/{id}:
+    get:
+      operationId: getDinosaur
+      tags: [dinosaurs]
+      summary: Get a dinosaur by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dinosaur details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dinosaur"
+        "404":
+          description: Dinosaur not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateDinosaur
+      tags: [dinosaurs]
+      summary: Update a dinosaur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDinosaur"
+      responses:
+        "200":
+          description: Updated dinosaur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dinosaur"
+        "404":
+          description: Dinosaur not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteDinosaur
+      tags: [dinosaurs]
+      summary: Delete a dinosaur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Dinosaur not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +146,59 @@ components:
           type: string
       required:
         - status
-
+    Dinosaur:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        period:
+          type: string
+        diet:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - description
+        - period
+        - diet
+        - createdAt
+        - updatedAt
+    CreateDinosaur:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        period:
+          type: string
+        diet:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+      required:
+        - name
+        - description
+        - period
+        - diet
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

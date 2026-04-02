@@ -8,3 +8,33 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Dinosaur {
+  id: number;
+  name: string;
+  description: string;
+  period: string;
+  diet: string;
+  imageUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateDinosaur {
+  name: string;
+  description: string;
+  period: string;
+  diet: string;
+  imageUrl?: string | null;
+}
+
+export interface ErrorResponse {
+  error: string;
+}
+
+export type GetDinosaursParams = {
+  /**
+   * Search dinosaurs by name
+   */
+  search?: string;
+};

@@ -5,18 +5,27 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  CreateDinosaur,
+  Dinosaur,
+  ErrorResponse,
+  GetDinosaursParams,
+  HealthStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +108,442 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Returns all dinosaurs, optionally filtered by search query
+ * @summary List all dinosaurs
+ */
+export const getGetDinosaursUrl = (params?: GetDinosaursParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/dinosaurs?${stringifiedParams}`
+    : `/api/dinosaurs`;
+};
+
+export const getDinosaurs = async (
+  params?: GetDinosaursParams,
+  options?: RequestInit,
+): Promise<Dinosaur[]> => {
+  return customFetch<Dinosaur[]>(getGetDinosaursUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetDinosaursQueryKey = (params?: GetDinosaursParams) => {
+  return [`/api/dinosaurs`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetDinosaursQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDinosaurs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetDinosaursParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDinosaurs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetDinosaursQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDinosaurs>>> = ({
+    signal,
+  }) => getDinosaurs(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDinosaurs>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetDinosaursQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDinosaurs>>
+>;
+export type GetDinosaursQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all dinosaurs
+ */
+
+export function useGetDinosaurs<
+  TData = Awaited<ReturnType<typeof getDinosaurs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetDinosaursParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDinosaurs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDinosaursQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a dinosaur
+ */
+export const getCreateDinosaurUrl = () => {
+  return `/api/dinosaurs`;
+};
+
+export const createDinosaur = async (
+  createDinosaur: CreateDinosaur,
+  options?: RequestInit,
+): Promise<Dinosaur> => {
+  return customFetch<Dinosaur>(getCreateDinosaurUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createDinosaur),
+  });
+};
+
+export const getCreateDinosaurMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDinosaur>>,
+    TError,
+    { data: BodyType<CreateDinosaur> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createDinosaur>>,
+  TError,
+  { data: BodyType<CreateDinosaur> },
+  TContext
+> => {
+  const mutationKey = ["createDinosaur"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createDinosaur>>,
+    { data: BodyType<CreateDinosaur> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createDinosaur(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateDinosaurMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createDinosaur>>
+>;
+export type CreateDinosaurMutationBody = BodyType<CreateDinosaur>;
+export type CreateDinosaurMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a dinosaur
+ */
+export const useCreateDinosaur = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDinosaur>>,
+    TError,
+    { data: BodyType<CreateDinosaur> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createDinosaur>>,
+  TError,
+  { data: BodyType<CreateDinosaur> },
+  TContext
+> => {
+  return useMutation(getCreateDinosaurMutationOptions(options));
+};
+
+/**
+ * @summary Get a dinosaur by ID
+ */
+export const getGetDinosaurUrl = (id: number) => {
+  return `/api/dinosaurs/${id}`;
+};
+
+export const getDinosaur = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Dinosaur> => {
+  return customFetch<Dinosaur>(getGetDinosaurUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetDinosaurQueryKey = (id: number) => {
+  return [`/api/dinosaurs/${id}`] as const;
+};
+
+export const getGetDinosaurQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDinosaur>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDinosaur>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetDinosaurQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDinosaur>>> = ({
+    signal,
+  }) => getDinosaur(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDinosaur>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetDinosaurQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDinosaur>>
+>;
+export type GetDinosaurQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get a dinosaur by ID
+ */
+
+export function useGetDinosaur<
+  TData = Awaited<ReturnType<typeof getDinosaur>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getDinosaur>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDinosaurQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a dinosaur
+ */
+export const getUpdateDinosaurUrl = (id: number) => {
+  return `/api/dinosaurs/${id}`;
+};
+
+export const updateDinosaur = async (
+  id: number,
+  createDinosaur: CreateDinosaur,
+  options?: RequestInit,
+): Promise<Dinosaur> => {
+  return customFetch<Dinosaur>(getUpdateDinosaurUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createDinosaur),
+  });
+};
+
+export const getUpdateDinosaurMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDinosaur>>,
+    TError,
+    { id: number; data: BodyType<CreateDinosaur> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDinosaur>>,
+  TError,
+  { id: number; data: BodyType<CreateDinosaur> },
+  TContext
+> => {
+  const mutationKey = ["updateDinosaur"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDinosaur>>,
+    { id: number; data: BodyType<CreateDinosaur> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateDinosaur(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateDinosaurMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDinosaur>>
+>;
+export type UpdateDinosaurMutationBody = BodyType<CreateDinosaur>;
+export type UpdateDinosaurMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update a dinosaur
+ */
+export const useUpdateDinosaur = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDinosaur>>,
+    TError,
+    { id: number; data: BodyType<CreateDinosaur> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateDinosaur>>,
+  TError,
+  { id: number; data: BodyType<CreateDinosaur> },
+  TContext
+> => {
+  return useMutation(getUpdateDinosaurMutationOptions(options));
+};
+
+/**
+ * @summary Delete a dinosaur
+ */
+export const getDeleteDinosaurUrl = (id: number) => {
+  return `/api/dinosaurs/${id}`;
+};
+
+export const deleteDinosaur = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteDinosaurUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteDinosaurMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDinosaur>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDinosaur>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteDinosaur"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDinosaur>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteDinosaur(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteDinosaurMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDinosaur>>
+>;
+
+export type DeleteDinosaurMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Delete a dinosaur
+ */
+export const useDeleteDinosaur = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDinosaur>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDinosaur>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteDinosaurMutationOptions(options));
+};

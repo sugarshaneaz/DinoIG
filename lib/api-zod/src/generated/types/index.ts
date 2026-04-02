@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./createDinosaur";
+export * from "./dinosaur";
+export * from "./errorResponse";
+export * from "./getDinosaursParams";
 export * from "./healthStatus";

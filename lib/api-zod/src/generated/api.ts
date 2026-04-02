@@ -14,3 +14,85 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns all dinosaurs, optionally filtered by search query
+ * @summary List all dinosaurs
+ */
+export const GetDinosaursQueryParams = zod.object({
+  search: zod.coerce.string().optional().describe("Search dinosaurs by name"),
+});
+
+export const GetDinosaursResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  period: zod.string(),
+  diet: zod.string(),
+  imageUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const GetDinosaursResponse = zod.array(GetDinosaursResponseItem);
+
+/**
+ * @summary Create a dinosaur
+ */
+export const CreateDinosaurBody = zod.object({
+  name: zod.string(),
+  description: zod.string(),
+  period: zod.string(),
+  diet: zod.string(),
+  imageUrl: zod.string().nullish(),
+});
+
+/**
+ * @summary Get a dinosaur by ID
+ */
+export const GetDinosaurParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetDinosaurResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  period: zod.string(),
+  diet: zod.string(),
+  imageUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update a dinosaur
+ */
+export const UpdateDinosaurParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDinosaurBody = zod.object({
+  name: zod.string(),
+  description: zod.string(),
+  period: zod.string(),
+  diet: zod.string(),
+  imageUrl: zod.string().nullish(),
+});
+
+export const UpdateDinosaurResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  period: zod.string(),
+  diet: zod.string(),
+  imageUrl: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a dinosaur
+ */
+export const DeleteDinosaurParams = zod.object({
+  id: zod.coerce.number(),
+});
