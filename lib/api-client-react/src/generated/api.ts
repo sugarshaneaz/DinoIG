@@ -34,7 +34,6 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const getHealthCheckUrl = () => {
@@ -110,7 +109,6 @@ export function useHealthCheck<
 }
 
 /**
- * Returns all dinosaurs, optionally filtered by search query
  * @summary List all dinosaurs
  */
 export const getGetDinosaursUrl = (params?: GetDinosaursParams) => {
@@ -549,8 +547,91 @@ export const useDeleteDinosaur = <
 };
 
 /**
- * Searches Wikipedia for a matching image for the dinosaur and saves the URL to the database
- * @summary Search for and save a dinosaur image
+ * @summary Like a dinosaur post
+ */
+export const getLikeDinosaurUrl = (id: number) => {
+  return `/api/dinosaurs/${id}/like`;
+};
+
+export const likeDinosaur = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Dinosaur> => {
+  return customFetch<Dinosaur>(getLikeDinosaurUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getLikeDinosaurMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof likeDinosaur>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof likeDinosaur>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["likeDinosaur"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof likeDinosaur>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return likeDinosaur(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LikeDinosaurMutationResult = NonNullable<
+  Awaited<ReturnType<typeof likeDinosaur>>
+>;
+
+export type LikeDinosaurMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Like a dinosaur post
+ */
+export const useLikeDinosaur = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof likeDinosaur>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof likeDinosaur>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getLikeDinosaurMutationOptions(options));
+};
+
+/**
+ * @summary Search for and save a dinosaur image from Wikipedia
  */
 export const getFetchDinosaurImageUrl = (id: number) => {
   return `/api/dinosaurs/${id}/fetch-image`;
@@ -611,7 +692,7 @@ export type FetchDinosaurImageMutationResult = NonNullable<
 export type FetchDinosaurImageMutationError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Search for and save a dinosaur image
+ * @summary Search for and save a dinosaur image from Wikipedia
  */
 export const useFetchDinosaurImage = <
   TError = ErrorType<ErrorResponse>,

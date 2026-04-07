@@ -8,7 +8,6 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -16,11 +15,10 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * Returns all dinosaurs, optionally filtered by search query
  * @summary List all dinosaurs
  */
 export const GetDinosaursQueryParams = zod.object({
-  search: zod.coerce.string().optional().describe("Search dinosaurs by name"),
+  search: zod.coerce.string().optional(),
 });
 
 export const GetDinosaursResponseItem = zod.object({
@@ -30,6 +28,7 @@ export const GetDinosaursResponseItem = zod.object({
   period: zod.string(),
   diet: zod.string(),
   imageUrl: zod.string().nullish(),
+  likesCount: zod.number(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -60,6 +59,7 @@ export const GetDinosaurResponse = zod.object({
   period: zod.string(),
   diet: zod.string(),
   imageUrl: zod.string().nullish(),
+  likesCount: zod.number(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -86,6 +86,7 @@ export const UpdateDinosaurResponse = zod.object({
   period: zod.string(),
   diet: zod.string(),
   imageUrl: zod.string().nullish(),
+  likesCount: zod.number(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });
@@ -98,8 +99,26 @@ export const DeleteDinosaurParams = zod.object({
 });
 
 /**
- * Searches Wikipedia for a matching image for the dinosaur and saves the URL to the database
- * @summary Search for and save a dinosaur image
+ * @summary Like a dinosaur post
+ */
+export const LikeDinosaurParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const LikeDinosaurResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  description: zod.string(),
+  period: zod.string(),
+  diet: zod.string(),
+  imageUrl: zod.string().nullish(),
+  likesCount: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Search for and save a dinosaur image from Wikipedia
  */
 export const FetchDinosaurImageParams = zod.object({
   id: zod.coerce.number(),
@@ -112,6 +131,7 @@ export const FetchDinosaurImageResponse = zod.object({
   period: zod.string(),
   diet: zod.string(),
   imageUrl: zod.string().nullish(),
+  likesCount: zod.number(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
 });

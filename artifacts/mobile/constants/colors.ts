@@ -1,38 +1,44 @@
 const colors = {
   light: {
-    text: "#1a1a2e",
-    tint: "#2e7d32",
+    text: "#FFFFFF",
+    tint: "#FFFFFF",
 
-    background: "#f4f9f4",
-    foreground: "#1a1a2e",
+    background: "#000000",
+    foreground: "#FFFFFF",
 
-    card: "#ffffff",
-    cardForeground: "#1a1a2e",
+    card: "#000000",
+    cardForeground: "#FFFFFF",
 
-    primary: "#2e7d32",
-    primaryForeground: "#ffffff",
+    primary: "#FFFFFF",
+    primaryForeground: "#000000",
 
-    secondary: "#e8f5e9",
-    secondaryForeground: "#1b5e20",
+    secondary: "#1C1C1C",
+    secondaryForeground: "#FFFFFF",
 
-    muted: "#e8f5e9",
-    mutedForeground: "#6a8f6a",
+    muted: "#1C1C1C",
+    mutedForeground: "#8E8E8E",
 
-    accent: "#a5d6a7",
-    accentForeground: "#1b5e20",
+    accent: "#262626",
+    accentForeground: "#FFFFFF",
 
-    destructive: "#c62828",
-    destructiveForeground: "#ffffff",
+    destructive: "#FF3040",
+    destructiveForeground: "#FFFFFF",
 
-    border: "#c8e6c9",
-    input: "#c8e6c9",
+    border: "#262626",
+    input: "#262626",
 
-    searchBg: "#ffffff",
-    badge: "#1b5e20",
-    badgeForeground: "#e8f5e9",
-    imagePlaceholder: "#c8e6c9",
+    searchBg: "#1C1C1C",
+    badge: "#262626",
+    badgeForeground: "#8E8E8E",
+    imagePlaceholder: "#1C1C1C",
+
+    like: "#FF3040",
+    likeInactive: "#FFFFFF",
+    comment: "#FFFFFF",
+    share: "#FFFFFF",
+    repost: "#FFFFFF",
   },
-  radius: 12,
+  radius: 0,
 };
 
 export default colors;

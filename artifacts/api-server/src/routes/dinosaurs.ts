@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, ilike } from "drizzle-orm";
+import { eq, ilike, sql } from "drizzle-orm";
 import { db, dinosaursTable, insertDinosaurSchema } from "@workspace/db";
 
 const router: IRouter = Router();
@@ -114,6 +114,32 @@ router.delete("/dinosaurs/:id", async (req, res) => {
   }
 });
 
+router.post("/dinosaurs/:id/like", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "Invalid ID" });
+      return;
+    }
+    const [updated] = await db
+      .update(dinosaursTable)
+      .set({
+        likesCount: sql`${dinosaursTable.likesCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(dinosaursTable.id, id))
+      .returning();
+    if (!updated) {
+      res.status(404).json({ error: "Dinosaur not found" });
+      return;
+    }
+    res.json(updated);
+  } catch (err) {
+    req.log.error({ err }, "Failed to like dinosaur");
+    res.status(500).json({ error: "Failed to like dinosaur" });
+  }
+});
+
 router.post("/dinosaurs/:id/fetch-image", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -184,7 +210,6 @@ async function searchDinosaurImage(name: string): Promise<string | null> {
     }
   }
 
-  // Fallback: search Wikimedia Commons for the dinosaur
   const commonsUrl =
     `https://en.wikipedia.org/w/api.php?action=query` +
     `&list=search` +
@@ -204,7 +229,6 @@ async function searchDinosaurImage(name: string): Promise<string | null> {
   const results = commonsData?.query?.search;
   if (!results || results.length === 0) return null;
 
-  // Try the first search result
   const firstTitle = results[0]?.title;
   if (!firstTitle) return null;
 

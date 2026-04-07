@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
@@ -18,7 +17,6 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -31,14 +29,12 @@ paths:
       operationId: getDinosaurs
       tags: [dinosaurs]
       summary: List all dinosaurs
-      description: Returns all dinosaurs, optionally filtered by search query
       parameters:
         - name: search
           in: query
           required: false
           schema:
             type: string
-          description: Search dinosaurs by name
       responses:
         "200":
           description: List of dinosaurs
@@ -84,7 +80,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Dinosaur"
         "404":
-          description: Dinosaur not found
+          description: Not found
           content:
             application/json:
               schema:
@@ -113,7 +109,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Dinosaur"
         "404":
-          description: Dinosaur not found
+          description: Not found
           content:
             application/json:
               schema:
@@ -132,7 +128,31 @@ paths:
         "204":
           description: Deleted
         "404":
-          description: Dinosaur not found
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /dinosaurs/{id}/like:
+    post:
+      operationId: likeDinosaur
+      tags: [dinosaurs]
+      summary: Like a dinosaur post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated dinosaur with new like count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dinosaur"
+        "404":
+          description: Not found
           content:
             application/json:
               schema:
@@ -141,8 +161,7 @@ paths:
     post:
       operationId: fetchDinosaurImage
       tags: [dinosaurs]
-      summary: Search for and save a dinosaur image
-      description: Searches Wikipedia for a matching image for the dinosaur and saves the URL to the database
+      summary: Search for and save a dinosaur image from Wikipedia
       parameters:
         - name: id
           in: path
@@ -157,7 +176,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Dinosaur"
         "404":
-          description: Dinosaur not found or no image found
+          description: Not found
           content:
             application/json:
               schema:
@@ -187,6 +206,8 @@ components:
         imageUrl:
           type: string
           nullable: true
+        likesCount:
+          type: integer
         createdAt:
           type: string
           format: date-time
@@ -199,6 +220,7 @@ components:
         - description
         - period
         - diet
+        - likesCount
         - createdAt
         - updatedAt
     CreateDinosaur:

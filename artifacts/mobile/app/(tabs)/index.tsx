@@ -1,32 +1,28 @@
 import React, { useState, useCallback } from "react";
 import {
   View,
-  Text,
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  Platform,
+  Text,
   RefreshControl,
+  Platform,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGetDinosaurs } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
-import { SearchBar } from "@/components/SearchBar";
-import { DinoCard } from "@/components/DinoCard";
+import { DinoPost } from "@/components/DinoPost";
+import { useRouter } from "expo-router";
 import type { Dinosaur } from "@workspace/api-client-react";
 
-export default function HomeScreen() {
+export default function FeedScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [localOverrides, setLocalOverrides] = useState<Record<number, Dinosaur>>({});
 
-  const { data: dinosaurs, isLoading, error, refetch } = useGetDinosaurs(
-    search ? { search } : {}
-  );
+  const { data: dinosaurs, isLoading, error, refetch } = useGetDinosaurs({});
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -42,87 +38,65 @@ export default function HomeScreen() {
     [router]
   );
 
-  const handleImageFetched = useCallback((updated: Dinosaur) => {
+  const handleLiked = useCallback((updated: Dinosaur) => {
     setLocalOverrides((prev) => ({ ...prev, [updated.id]: updated }));
   }, []);
 
   const mergedDinosaurs = (dinosaurs ?? []).map((d) => localOverrides[d.id] ?? d);
 
-  const topPadding = Platform.OS === "web" ? Math.max(insets.top, 67) : insets.top;
+  if (isLoading && !refreshing) {
+    return (
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.mutedForeground }]}>
+          Failed to load feed
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.header,
-          {
-            backgroundColor: colors.background,
-            paddingTop: topPadding + 12,
-            borderBottomColor: colors.border,
-          },
-        ]}
-      >
-        <Text style={[styles.title, { color: colors.foreground }]}>
-          Dinosaur Explorer
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          Discover prehistoric life
-        </Text>
-        <View style={styles.searchWrapper}>
-          <SearchBar value={search} onChangeText={setSearch} />
-        </View>
-      </View>
-
-      {isLoading && !refreshing ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : error ? (
-        <View style={styles.center}>
-          <Text style={[styles.errorText, { color: colors.destructive }]}>
-            Failed to load dinosaurs
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={mergedDinosaurs}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => (
-            <DinoCard
-              dinosaur={item}
-              onPress={() => handlePress(item)}
-              onImageFetched={handleImageFetched}
-            />
-          )}
-          contentContainerStyle={[
-            styles.list,
-            {
-              paddingBottom:
-                (Platform.OS === "web" ? 34 : insets.bottom) + 20,
-            },
-          ]}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={colors.primary}
-            />
-          }
-          scrollEnabled={!!(mergedDinosaurs.length > 0)}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-                {search ? "No results found" : "No dinosaurs yet"}
-              </Text>
-              <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-                {search
-                  ? `Try a different search term`
-                  : "Dinosaur info will appear here once added"}
-              </Text>
-            </View>
-          }
-        />
-      )}
+      <FlatList
+        data={mergedDinosaurs}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => (
+          <DinoPost
+            dinosaur={item}
+            onPress={() => handlePress(item)}
+            onLiked={handleLiked}
+          />
+        )}
+        contentContainerStyle={{
+          paddingBottom: (Platform.OS === "web" ? 34 : insets.bottom) + 20,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>🦖</Text>
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
+              No dinosaurs yet
+            </Text>
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+              The feed is empty — check back later
+            </Text>
+          </View>
+        }
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }
@@ -131,52 +105,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  title: {
-    fontSize: 26,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 2,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    marginBottom: 14,
-  },
-  searchWrapper: {
-    marginBottom: 4,
-  },
   center: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
-  list: {
-    paddingTop: 12,
+  errorText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
   },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 80,
-    paddingHorizontal: 32,
-    gap: 8,
+    paddingTop: 100,
+    gap: 12,
+  },
+  emptyEmoji: {
+    fontSize: 64,
   },
   emptyTitle: {
     fontSize: 18,
     fontFamily: "Inter_600SemiBold",
-    textAlign: "center",
   },
   emptyText: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    lineHeight: 20,
-  },
-  errorText: {
-    fontSize: 15,
-    fontFamily: "Inter_500Medium",
+    paddingHorizontal: 32,
   },
 });

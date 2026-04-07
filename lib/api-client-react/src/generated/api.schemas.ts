@@ -16,6 +16,7 @@ export interface Dinosaur {
   period: string;
   diet: string;
   imageUrl?: string | null;
+  likesCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,8 +34,5 @@ export interface ErrorResponse {
 }
 
 export type GetDinosaursParams = {
-  /**
-   * Search dinosaurs by name
-   */
   search?: string;
 };

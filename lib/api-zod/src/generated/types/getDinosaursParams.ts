@@ -7,8 +7,5 @@
  */
 
 export type GetDinosaursParams = {
-  /**
-   * Search dinosaurs by name
-   */
   search?: string;
 };
