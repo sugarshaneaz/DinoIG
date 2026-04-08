@@ -1,0 +1,312 @@
+"""
+Dinosaur Image Fetcher — Wikimedia Commons Life Restorations
+=============================================================
+Run this script in your Replit project to download CC-licensed
+artistic illustrations of ~309 dinosaurs.
+
+Usage:
+    python fetch_dino_images.py
+
+It reads dinosaur names from data/data.csv (the jurassic-park dataset),
+queries Wikimedia Commons for "life restoration" illustrations, downloads
+the best match for each dinosaur, and creates a mapping JSON file.
+
+Output:
+    images/              — folder of downloaded images (dinosaur_name.jpg/png)
+    dino_images.json     — mapping: { "name": { filename, source_url, artist, license } }
+    dino_images_missing.json — list of dinosaurs with no image found
+
+Requirements:
+    pip install requests   (usually pre-installed on Replit)
+"""
+
+import csv
+import json
+import os
+import re
+import sys
+import time
+from pathlib import Path
+
+try:
+    import requests
+except ImportError:
+    print("Installing requests...")
+    os.system(f"{sys.executable} -m pip install requests -q")
+    import requests
+
+# ── Configuration ──────────────────────────────────────────────
+CSV_PATH = "data/data.csv"                 # path to jurassic-park CSV
+IMAGE_DIR = Path("images")                  # where to save images
+MAPPING_FILE = Path("dino_images.json")     # name → image info
+MISSING_FILE = Path("dino_images_missing.json")
+THUMB_WIDTH = 800                           # resize images to this width
+REQUEST_DELAY = 0.5                         # seconds between API calls (be polite)
+SAVE_EVERY = 10                             # save progress every N dinosaurs
+
+# Wikimedia API setup
+COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+SESSION = requests.Session()
+SESSION.headers.update({
+    "User-Agent": "DinoAppImageFetcher/1.0 (Replit dinosaur app; educational project)"
+})
+
+# ── Scoring keywords ──────────────────────────────────────────
+# We WANT artistic life restorations, NOT fossils/skeletons
+WANT_KEYWORDS = [
+    "restoration", "life restoration", "paleoart", "illustration",
+    "reconstruction", "artist", "painting", "drawing", "render",
+    "depiction", "appearance"
+]
+AVOID_KEYWORDS = [
+    "skeleton", "fossil", "bone", "skull", "museum", "mount",
+    "excavat", "specimen", "holotype", "cast", "skeletal",
+    "teeth", "jaw", "claw"
+]
+
+
+def search_commons(query: str, limit: int = 10) -> dict:
+    """Search Wikimedia Commons File namespace."""
+    params = {
+        "action": "query",
+        "generator": "search",
+        "gsrnamespace": 6,           # File: namespace
+        "gsrsearch": query,
+        "gsrlimit": limit,
+        "prop": "imageinfo|categories",
+        "iiprop": "url|size|mime|extmetadata",
+        "iiurlwidth": THUMB_WIDTH,
+        "format": "json",
+    }
+    try:
+        resp = SESSION.get(COMMONS_API, params=params, timeout=15)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        print(f"    API error: {e}")
+        return {}
+
+
+def score_image(page: dict, dino_name: str) -> int:
+    """Score how likely an image is to be an artistic life restoration."""
+    score = 0
+    title = page.get("title", "").lower()
+    info = (page.get("imageinfo") or [{}])[0]
+    mime = info.get("mime", "")
+    meta = info.get("extmetadata", {})
+    desc = meta.get("ImageDescription", {}).get("value", "").lower()
+    cats = " ".join(c.get("title", "").lower() for c in page.get("categories", []))
+    blob = f"{title} {desc} {cats}"
+
+    # Must be a raster image
+    if not mime.startswith("image/") or "svg" in mime:
+        return -100
+
+    # Bonus: dinosaur name appears in title
+    if dino_name.lower() in title:
+        score += 10
+
+    # Bonus: life-restoration keywords
+    for kw in WANT_KEYWORDS:
+        if kw in blob:
+            score += 8
+
+    # Penalty: fossil/skeleton keywords
+    for kw in AVOID_KEYWORDS:
+        if kw in blob:
+            score -= 15
+
+    # Big bonus for life restoration categories
+    if "life restoration" in cats or "paleoart" in cats:
+        score += 25
+
+    # Prefer reasonably sized images
+    w, h = info.get("width", 0), info.get("height", 0)
+    if w >= 400 and h >= 300:
+        score += 5
+    elif w < 150 or h < 100:
+        score -= 10
+
+    return score
+
+
+def find_best_image(dino_name: str):
+    """Try multiple search strategies to find the best life restoration."""
+    strategies = [
+        f"{dino_name} life restoration",
+        f"{dino_name} restoration",
+        f"{dino_name} paleoart",
+        f"{dino_name} dinosaur illustration",
+        dino_name,
+    ]
+
+    best_score = -999
+    best_page = None
+
+    for query in strategies:
+        data = search_commons(query)
+        pages = (data.get("query") or {}).get("pages", {})
+
+        for page in pages.values():
+            s = score_image(page, dino_name)
+            if s > best_score:
+                best_score = s
+                best_page = page
+
+        # Good enough — stop searching
+        if best_score >= 15:
+            break
+        time.sleep(0.3)
+
+    return best_page, best_score
+
+
+def download_image(url: str, filepath: Path) -> bool:
+    """Download an image file."""
+    try:
+        resp = SESSION.get(url, timeout=30, stream=True)
+        resp.raise_for_status()
+        with open(filepath, "wb") as f:
+            for chunk in resp.iter_content(8192):
+                f.write(chunk)
+        return True
+    except Exception as e:
+        print(f"    Download failed: {e}")
+        return False
+
+
+def ext_from_url(url: str, mime: str = "") -> str:
+    """Determine file extension."""
+    url_lower = url.lower()
+    if ".png" in url_lower:
+        return ".png"
+    if ".gif" in url_lower:
+        return ".gif"
+    if "png" in mime:
+        return ".png"
+    return ".jpg"
+
+
+def strip_html(text: str) -> str:
+    """Remove HTML tags from a string."""
+    return re.sub(r"<[^>]+>", "", text).strip()[:200]
+
+
+# ── Main ──────────────────────────────────────────────────────
+def main():
+    # Load dinosaur names
+    if not os.path.exists(CSV_PATH):
+        print(f"ERROR: Cannot find {CSV_PATH}")
+        print("Make sure this script is in the root of your project,")
+        print("and that the data/ folder contains data.csv.")
+        sys.exit(1)
+
+    with open(CSV_PATH) as f:
+        dinos = [row["name"].strip() for row in csv.DictReader(f)]
+
+    print(f"🦕 Found {len(dinos)} dinosaurs in {CSV_PATH}")
+    IMAGE_DIR.mkdir(exist_ok=True)
+
+    # Resume from previous progress
+    mapping = {}
+    if MAPPING_FILE.exists():
+        with open(MAPPING_FILE) as f:
+            mapping = json.load(f)
+        print(f"📂 Resuming — {len(mapping)} already downloaded")
+
+    found_count = len(mapping)
+    missing = []
+
+    for i, dino in enumerate(dinos, 1):
+        # Skip already-downloaded
+        if dino in mapping:
+            img_path = IMAGE_DIR / mapping[dino]["filename"]
+            if img_path.exists():
+                continue
+            # File missing on disk — re-download
+            del mapping[dino]
+
+        print(f"[{i}/{len(dinos)}] {dino}...", end=" ", flush=True)
+
+        page, score = find_best_image(dino)
+
+        if page and score > -5:
+            info = (page.get("imageinfo") or [{}])[0]
+            url = info.get("thumburl") or info.get("url")
+            if url:
+                mime = info.get("mime", "")
+                ext = ext_from_url(url, mime)
+                filename = f"{dino}{ext}"
+                filepath = IMAGE_DIR / filename
+
+                meta = info.get("extmetadata", {})
+                artist = strip_html(meta.get("Artist", {}).get("value", "Unknown"))
+                license_name = meta.get("LicenseShortName", {}).get("value", "Unknown")
+                source_url = info.get("descriptionurl", "")
+
+                if download_image(url, filepath):
+                    mapping[dino] = {
+                        "filename": filename,
+                        "source_url": source_url,
+                        "artist": artist,
+                        "license": license_name,
+                        "score": score,
+                    }
+                    found_count += 1
+                    print(f"✓ {filename} (score={score}, license={license_name})")
+                else:
+                    missing.append(dino)
+                    print("✗ download failed")
+            else:
+                missing.append(dino)
+                print("✗ no URL")
+        else:
+            missing.append(dino)
+            print(f"✗ no image (score={score})")
+
+        # Save progress
+        if i % SAVE_EVERY == 0:
+            with open(MAPPING_FILE, "w") as f:
+                json.dump(mapping, f, indent=2)
+            pct = found_count / len(dinos) * 100
+            print(f"  💾 Progress saved — {found_count}/{len(dinos)} ({pct:.0f}%)")
+
+        time.sleep(REQUEST_DELAY)
+
+    # Final save
+    with open(MAPPING_FILE, "w") as f:
+        json.dump(mapping, f, indent=2)
+    with open(MISSING_FILE, "w") as f:
+        json.dump(missing, f, indent=2)
+
+    # Summary
+    print(f"\n{'═' * 55}")
+    print(f"  🦖 DONE!")
+    print(f"  Images found:   {found_count}/{len(dinos)} ({found_count/len(dinos)*100:.0f}%)")
+    print(f"  Missing:        {len(missing)}")
+    print(f"  Image folder:   {IMAGE_DIR}/")
+    print(f"  Mapping JSON:   {MAPPING_FILE}")
+    if missing:
+        print(f"  Missing list:   {MISSING_FILE}")
+    print(f"{'═' * 55}")
+
+    # Print usage example
+    print("""
+📋 Usage in your app:
+
+    import json
+
+    with open("dino_images.json") as f:
+        images = json.load(f)
+
+    # Get image path for a dinosaur
+    trex = images.get("tyrannosaurus")
+    if trex:
+        img_path = f"images/{trex['filename']}"
+        print(f"Artist: {trex['artist']}")
+        print(f"License: {trex['license']}")
+""")
+
+
+if __name__ == "__main__":
+    main()

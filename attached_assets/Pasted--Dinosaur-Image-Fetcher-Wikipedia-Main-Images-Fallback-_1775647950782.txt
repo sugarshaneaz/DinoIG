@@ -1,0 +1,240 @@
+"""
+Dinosaur Image Fetcher — Wikipedia Main Images (Fallback/Supplement)
+====================================================================
+This script grabs the main image from each dinosaur's Wikipedia article.
+These are often high-quality life restorations used as the lead image.
+
+Use this AFTER fetch_dino_images.py to fill gaps, or on its own for
+a quick pass that covers the most well-known dinosaurs.
+
+Usage:
+    python fetch_dino_images_wiki.py
+
+Output:
+    images/                    — downloaded images
+    dino_images_wiki.json      — mapping file
+"""
+
+import csv
+import json
+import os
+import re
+import sys
+import time
+from pathlib import Path
+
+try:
+    import requests
+except ImportError:
+    os.system(f"{sys.executable} -m pip install requests -q")
+    import requests
+
+CSV_PATH = "data/data.csv"
+IMAGE_DIR = Path("images")
+MAPPING_FILE = Path("dino_images_wiki.json")
+MISSING_FILE = Path("dino_images_wiki_missing.json")
+
+SESSION = requests.Session()
+SESSION.headers.update({
+    "User-Agent": "DinoAppImageFetcher/1.0 (Replit dinosaur app; educational)"
+})
+
+WIKI_API = "https://en.wikipedia.org/w/api.php"
+
+
+def get_wikipedia_image(dino_name: str) -> dict | None:
+    """
+    Get the main (lead) image from a dinosaur's Wikipedia page.
+    Uses the pageimages API which returns the primary image.
+    """
+    # Wikipedia titles are capitalized
+    title = dino_name.capitalize()
+
+    params = {
+        "action": "query",
+        "titles": title,
+        "prop": "pageimages|pageprops",
+        "piprop": "original|thumbnail",
+        "pithumbsize": 800,
+        "redirects": 1,
+        "format": "json",
+    }
+
+    try:
+        resp = SESSION.get(WIKI_API, params=params, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"    API error: {e}")
+        return None
+
+    pages = data.get("query", {}).get("pages", {})
+    for page_id, page in pages.items():
+        if page_id == "-1":
+            return None  # page not found
+
+        original = page.get("original", {})
+        thumb = page.get("thumbnail", {})
+
+        img_url = thumb.get("source") or original.get("source")
+        if img_url:
+            return {
+                "url": img_url,
+                "width": thumb.get("width") or original.get("width", 0),
+                "height": thumb.get("height") or original.get("height", 0),
+                "title": page.get("title", title),
+            }
+
+    return None
+
+
+def get_commons_file_info(filename: str) -> dict:
+    """Get license/artist info from Commons for a file."""
+    params = {
+        "action": "query",
+        "titles": f"File:{filename}",
+        "prop": "imageinfo",
+        "iiprop": "extmetadata|url",
+        "format": "json",
+    }
+    try:
+        resp = SESSION.get(
+            "https://commons.wikimedia.org/w/api.php",
+            params=params, timeout=10
+        )
+        data = resp.json()
+        pages = data.get("query", {}).get("pages", {})
+        for page in pages.values():
+            info = (page.get("imageinfo") or [{}])[0]
+            meta = info.get("extmetadata", {})
+            return {
+                "artist": re.sub(r"<[^>]+>", "", meta.get("Artist", {}).get("value", "Unknown"))[:200],
+                "license": meta.get("LicenseShortName", {}).get("value", "Unknown"),
+                "source_url": info.get("descriptionurl", ""),
+            }
+    except:
+        pass
+    return {"artist": "Unknown", "license": "Unknown", "source_url": ""}
+
+
+def download(url: str, path: Path) -> bool:
+    try:
+        resp = SESSION.get(url, timeout=30, stream=True)
+        resp.raise_for_status()
+        with open(path, "wb") as f:
+            for chunk in resp.iter_content(8192):
+                f.write(chunk)
+        return True
+    except Exception as e:
+        print(f"    Download failed: {e}")
+        return False
+
+
+def ext_from_url(url: str) -> str:
+    url = url.lower().split("?")[0]
+    if url.endswith(".png"):
+        return ".png"
+    if url.endswith(".gif"):
+        return ".gif"
+    if url.endswith(".svg"):
+        return ".svg"
+    return ".jpg"
+
+
+def main():
+    if not os.path.exists(CSV_PATH):
+        print(f"ERROR: {CSV_PATH} not found. Place this script in your project root.")
+        sys.exit(1)
+
+    with open(CSV_PATH) as f:
+        dinos = [row["name"].strip() for row in csv.DictReader(f)]
+
+    print(f"🦕 {len(dinos)} dinosaurs to process")
+    IMAGE_DIR.mkdir(exist_ok=True)
+
+    # Check what we already have from the Commons script
+    existing = {}
+    commons_file = Path("dino_images.json")
+    if commons_file.exists():
+        with open(commons_file) as f:
+            existing = json.load(f)
+        print(f"📂 Found {len(existing)} images from Commons script — skipping those")
+
+    # Resume our own progress
+    mapping = {}
+    if MAPPING_FILE.exists():
+        with open(MAPPING_FILE) as f:
+            mapping = json.load(f)
+
+    missing = []
+    found = len(mapping)
+
+    for i, dino in enumerate(dinos, 1):
+        # Skip if already have from either source
+        if dino in existing or dino in mapping:
+            continue
+
+        print(f"[{i}/{len(dinos)}] {dino}...", end=" ", flush=True)
+
+        result = get_wikipedia_image(dino)
+
+        if result and result["url"]:
+            url = result["url"]
+            ext = ext_from_url(url)
+
+            # Skip SVGs (not great for app use)
+            if ext == ".svg":
+                missing.append(dino)
+                print("✗ SVG only")
+                time.sleep(0.3)
+                continue
+
+            filename = f"{dino}{ext}"
+            filepath = IMAGE_DIR / filename
+
+            if download(url, filepath):
+                # Try to get license info
+                file_part = url.split("/")[-1]
+                commons_info = get_commons_file_info(file_part)
+
+                mapping[dino] = {
+                    "filename": filename,
+                    **commons_info,
+                }
+                found += 1
+                print(f"✓ {filename}")
+            else:
+                missing.append(dino)
+                print("✗ download failed")
+        else:
+            missing.append(dino)
+            print("✗ no Wikipedia image")
+
+        if i % 10 == 0:
+            with open(MAPPING_FILE, "w") as f:
+                json.dump(mapping, f, indent=2)
+
+        time.sleep(0.4)
+
+    # Save
+    with open(MAPPING_FILE, "w") as f:
+        json.dump(mapping, f, indent=2)
+    with open(MISSING_FILE, "w") as f:
+        json.dump(missing, f, indent=2)
+
+    # Merge with commons results for a combined file
+    combined = {**existing, **mapping}
+    with open("dino_images_all.json", "w") as f:
+        json.dump(combined, f, indent=2)
+
+    total = len(combined)
+    print(f"\n{'═' * 55}")
+    print(f"  🦖 Wikipedia pass complete!")
+    print(f"  This run:   {found} new images")
+    print(f"  Combined:   {total}/{len(dinos)} total ({total/len(dinos)*100:.0f}%)")
+    print(f"  Missing:    {len(missing)}")
+    print(f"{'═' * 55}")
+
+
+if __name__ == "__main__":
+    main()
