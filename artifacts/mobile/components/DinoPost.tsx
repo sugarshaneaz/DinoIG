@@ -108,7 +108,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
             <Image
               source={{ uri: imageUri }}
               style={styles.image}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <View style={[styles.imagePlaceholder, { backgroundColor: colors.accent }]}>
@@ -217,16 +217,17 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
+    height: SCREEN_WIDTH * 0.75,
     position: "relative",
+    backgroundColor: "#000",
   },
   image: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
+    height: SCREEN_WIDTH * 0.75,
   },
   imagePlaceholder: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
+    height: SCREEN_WIDTH * 0.75,
     alignItems: "center",
     justifyContent: "center",
   },

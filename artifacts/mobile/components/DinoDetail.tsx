@@ -54,7 +54,7 @@ export function DinoDetail({ dinosaur, onImageFetched }: DinoDetailProps) {
           <Image
             source={{ uri: resolveImageUrl(dinosaur.imageUrl)! }}
             style={styles.heroImage}
-            resizeMode="cover"
+            resizeMode="contain"
           />
           <TouchableOpacity
             style={[
@@ -189,7 +189,8 @@ function InfoBadge({
 const styles = StyleSheet.create({
   heroImage: {
     width: "100%",
-    height: 260,
+    height: 280,
+    backgroundColor: "#000",
   },
   changeImageBtn: {
     position: "absolute",

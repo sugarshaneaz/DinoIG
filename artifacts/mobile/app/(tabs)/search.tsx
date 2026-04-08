@@ -56,7 +56,7 @@ export default function SearchScreen() {
             <Image
               source={{ uri: imageUri }}
               style={styles.tileImage}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <View style={[styles.tilePlaceholder, { backgroundColor: colors.accent }]}>
@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
   tile: {
     position: "relative",
     overflow: "hidden",
+    backgroundColor: "#000",
   },
   tileMiddle: {},
   tileImage: {
