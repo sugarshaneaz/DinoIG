@@ -185,16 +185,34 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
           <View style={styles.commentsSection}>
             <View style={[styles.commentsDivider, { backgroundColor: colors.border }]} />
             {comments.map((c, i) => (
-              <View key={i} style={styles.commentRow}>
-                <Text style={styles.commentAvatar}>{c.avatar}</Text>
-                <View style={styles.commentBody}>
-                  <Text style={[styles.commentUsername, { color: colors.foreground }]}>
-                    {c.username}{" "}
-                    <Text style={[styles.commentText, { color: colors.foreground }]}>
+              <View key={i} style={styles.commentThread}>
+                <View style={styles.commentRow}>
+                  <Text style={styles.commentAvatar}>{c.avatar}</Text>
+                  <View style={styles.commentBody}>
+                    <Text style={[styles.commentLine, { color: colors.foreground }]}>
+                      <Text style={styles.commentUsername}>{c.username} </Text>
                       {c.text}
                     </Text>
-                  </Text>
+                  </View>
                 </View>
+                {c.replies && c.replies.length > 0 && (
+                  <View style={styles.repliesBlock}>
+                    <View style={[styles.replyThreadLine, { backgroundColor: colors.border }]} />
+                    <View style={styles.repliesInner}>
+                      {c.replies.map((r, j) => (
+                        <View key={j} style={styles.replyRow}>
+                          <Text style={styles.replyAvatar}>{r.avatar}</Text>
+                          <View style={styles.commentBody}>
+                            <Text style={[styles.commentLine, { color: colors.foreground }]}>
+                              <Text style={styles.commentUsername}>{r.username} </Text>
+                              {r.text}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             ))}
             <TouchableOpacity onPress={handleComments} style={styles.hideBtn}>
@@ -335,6 +353,9 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     marginBottom: 2,
   },
+  commentThread: {
+    gap: 0,
+  },
   commentRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -343,18 +364,47 @@ const styles = StyleSheet.create({
   commentAvatar: {
     fontSize: 18,
     lineHeight: 22,
+    width: 22,
+    textAlign: "center",
   },
   commentBody: {
     flex: 1,
   },
-  commentUsername: {
+  commentLine: {
     fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_400Regular",
     lineHeight: 19,
   },
-  commentText: {
-    fontFamily: "Inter_400Regular",
+  commentUsername: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 13,
+  },
+  repliesBlock: {
+    flexDirection: "row",
+    marginLeft: 11,
+    marginTop: 6,
+    gap: 0,
+  },
+  replyThreadLine: {
+    width: 2,
+    borderRadius: 1,
+    marginRight: 14,
+    minHeight: "100%",
+  },
+  repliesInner: {
+    flex: 1,
+    gap: 8,
+  },
+  replyRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  replyAvatar: {
+    fontSize: 15,
+    lineHeight: 20,
+    width: 20,
+    textAlign: "center",
   },
   hideBtn: {
     alignSelf: "flex-start",
