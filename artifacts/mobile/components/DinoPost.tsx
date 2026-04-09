@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  ActivityIndicator,
   Share,
   Platform,
 } from "react-native";
@@ -16,6 +15,7 @@ import { useColors } from "@/hooks/useColors";
 import { useLikeDinosaur } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
+import { getCommentsForDino } from "@/lib/dinoComments";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -31,6 +31,9 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
   const [localLikes, setLocalLikes] = useState(dinosaur.likesCount);
   const [reposted, setReposted] = useState(false);
   const [reposts, setReposts] = useState(0);
+  const [showComments, setShowComments] = useState(false);
+
+  const comments = getCommentsForDino(dinosaur.id, 3);
 
   const { mutate: likeDino } = useLikeDinosaur({
     mutation: {
@@ -67,6 +70,13 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
     } catch {
     }
   }, [dinosaur]);
+
+  const handleComments = useCallback(() => {
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setShowComments((v) => !v);
+  }, []);
 
   const imageUri = resolveImageUrl(dinosaur.imageUrl);
 
@@ -130,8 +140,12 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
               color={liked ? colors.like : colors.likeInactive}
             />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
-            <Feather name="message-circle" size={26} color={colors.comment} />
+          <TouchableOpacity style={styles.actionBtn} onPress={handleComments}>
+            <Feather
+              name="message-circle"
+              size={26}
+              color={showComments ? colors.foreground : colors.comment}
+            />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
             <Feather name="send" size={26} color={colors.share} />
@@ -166,6 +180,30 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
         <Text style={[styles.period, { color: colors.mutedForeground }]}>
           {dinosaur.period} · {dinosaur.diet}
         </Text>
+
+        {showComments && (
+          <View style={styles.commentsSection}>
+            <View style={[styles.commentsDivider, { backgroundColor: colors.border }]} />
+            {comments.map((c, i) => (
+              <View key={i} style={styles.commentRow}>
+                <Text style={styles.commentAvatar}>{c.avatar}</Text>
+                <View style={styles.commentBody}>
+                  <Text style={[styles.commentUsername, { color: colors.foreground }]}>
+                    {c.username}{" "}
+                    <Text style={[styles.commentText, { color: colors.foreground }]}>
+                      {c.text}
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            ))}
+            <TouchableOpacity onPress={handleComments} style={styles.hideBtn}>
+              <Text style={[styles.hideBtnText, { color: colors.mutedForeground }]}>
+                Hide comments
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -288,5 +326,42 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
+  },
+  commentsSection: {
+    marginTop: 6,
+    gap: 10,
+  },
+  commentsDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginBottom: 2,
+  },
+  commentRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  commentAvatar: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
+  commentBody: {
+    flex: 1,
+  },
+  commentUsername: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    lineHeight: 19,
+  },
+  commentText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+  },
+  hideBtn: {
+    alignSelf: "flex-start",
+    paddingTop: 2,
+  },
+  hideBtnText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
   },
 });
