@@ -6,7 +6,10 @@ import { useColors } from "@/hooks/useColors";
 
 function DinoIGLogo() {
   return (
-    <Text style={styles.logoText}>Dino IG</Text>
+    <View style={styles.logoWrapper}>
+      <Text style={styles.logoText}>Dino IG</Text>
+      <Text style={styles.logoSub}>by Same Heights</Text>
+    </View>
   );
 }
 
@@ -62,10 +65,21 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  logoWrapper: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 6,
+  },
   logoText: {
     fontFamily: "Inter_700Bold",
-    fontSize: 24,
+    fontSize: 22,
     color: "#FFFFFF",
     letterSpacing: -0.5,
+  },
+  logoSub: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    color: "#8E8E8E",
+    letterSpacing: 0,
   },
 });
