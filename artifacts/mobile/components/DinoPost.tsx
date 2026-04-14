@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  Share,
   Platform,
   ScrollView,
   NativeSyntheticEvent,
@@ -14,6 +13,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useLikeDinosaur } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
@@ -78,14 +78,12 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
     setReposts((n) => (reposted ? Math.max(0, n - 1) : n + 1));
   }, [reposted]);
 
-  const handleShare = useCallback(async () => {
-    try {
-      await Share.share({
-        message: `Check out ${dinosaur.name} on Dino IG! 🦖 ${dinosaur.description}`,
-        title: `${dinosaur.name} — Dino IG`,
-      });
-    } catch {}
-  }, [dinosaur]);
+  const handleDM = useCallback(() => {
+    if (Platform.OS !== "web") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    router.push(`/chat?id=${dinosaur.id}`);
+  }, [dinosaur.id]);
 
   const handleComments = useCallback(() => {
     if (Platform.OS !== "web") {
@@ -229,7 +227,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
               color={showComments ? colors.foreground : colors.comment}
             />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
+          <TouchableOpacity style={styles.actionBtn} onPress={handleDM}>
             <Feather name="send" size={26} color={colors.share} />
           </TouchableOpacity>
         </View>
