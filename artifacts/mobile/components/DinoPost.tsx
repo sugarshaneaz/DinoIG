@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   Dimensions,
   Share,
   Platform,
+  ScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -16,8 +19,10 @@ import { useLikeDinosaur } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
 import { resolveImageUrl } from "@/lib/resolveImageUrl";
 import { getCommentsForDino } from "@/lib/dinoComments";
+import { getRealisticImageUrl } from "@/lib/realisticImages";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
+const IMAGE_HEIGHT = SCREEN_WIDTH * 0.75;
 
 interface DinoPostProps {
   dinosaur: Dinosaur;
@@ -32,8 +37,20 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
   const [reposted, setReposted] = useState(false);
   const [reposts, setReposts] = useState(0);
   const [showComments, setShowComments] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
 
   const comments = getCommentsForDino(dinosaur.id, 3);
+  const fossilUri = resolveImageUrl(dinosaur.imageUrl);
+  const realisticUri = resolveImageUrl(getRealisticImageUrl(dinosaur.name));
+  const slides = realisticUri
+    ? [
+        { uri: realisticUri, label: "Life restoration" },
+        { uri: fossilUri, label: "Fossil" },
+      ]
+    : fossilUri
+    ? [{ uri: fossilUri, label: null }]
+    : [];
 
   const { mutate: likeDino } = useLikeDinosaur({
     mutation: {
@@ -67,8 +84,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
         message: `Check out ${dinosaur.name} on Dino IG! 🦖 ${dinosaur.description}`,
         title: `${dinosaur.name} — Dino IG`,
       });
-    } catch {
-    }
+    } catch {}
   }, [dinosaur]);
 
   const handleComments = useCallback(() => {
@@ -78,7 +94,13 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
     setShowComments((v) => !v);
   }, []);
 
-  const imageUri = resolveImageUrl(dinosaur.imageUrl);
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+      setActiveSlide(idx);
+    },
+    []
+  );
 
   const formatCount = (n: number) => {
     if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
@@ -87,6 +109,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
 
   return (
     <View style={[styles.container, { borderBottomColor: colors.border }]}>
+      {/* Header */}
       <TouchableOpacity
         style={styles.header}
         onPress={onPress}
@@ -112,25 +135,77 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity activeOpacity={0.95} onPress={onPress}>
-        <View style={styles.imageWrapper}>
-          {imageUri ? (
-            <Image
-              source={{ uri: imageUri }}
-              style={styles.image}
-              resizeMode="contain"
-            />
-          ) : (
+      {/* Image carousel */}
+      <View style={styles.carouselWrapper}>
+        {slides.length > 0 ? (
+          <>
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
+              style={styles.carousel}
+            >
+              {slides.map((slide, i) => (
+                <TouchableOpacity
+                  key={i}
+                  activeOpacity={0.95}
+                  onPress={onPress}
+                  style={styles.slideTouch}
+                >
+                  <View style={styles.imageWrapper}>
+                    <Image
+                      source={{ uri: slide.uri ?? undefined }}
+                      style={styles.image}
+                      resizeMode="cover"
+                    />
+                    {slide.label && (
+                      <View style={styles.slideLabel}>
+                        <Text style={styles.slideLabelText}>{slide.label}</Text>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Dot indicators */}
+            {slides.length > 1 && (
+              <View style={styles.dots}>
+                {slides.map((_, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.dot,
+                      {
+                        backgroundColor:
+                          i === activeSlide ? "#FFFFFF" : "rgba(255,255,255,0.35)",
+                        width: i === activeSlide ? 6 : 5,
+                        height: i === activeSlide ? 6 : 5,
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+            )}
+
+            {/* Overlay dino name */}
+            <View style={styles.imageOverlay} pointerEvents="none">
+              <Text style={styles.overlayName}>{dinosaur.name}</Text>
+            </View>
+          </>
+        ) : (
+          <TouchableOpacity activeOpacity={0.95} onPress={onPress}>
             <View style={[styles.imagePlaceholder, { backgroundColor: colors.accent }]}>
               <Text style={styles.placeholderEmoji}>🦖</Text>
             </View>
-          )}
-          <View style={styles.imageOverlay}>
-            <Text style={styles.overlayName}>{dinosaur.name}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+          </TouchableOpacity>
+        )}
+      </View>
 
+      {/* Action buttons */}
       <View style={styles.actions}>
         <View style={styles.leftActions}>
           <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
@@ -160,6 +235,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
         </TouchableOpacity>
       </View>
 
+      {/* Footer */}
       <View style={styles.footer}>
         {localLikes > 0 && (
           <Text style={[styles.likesText, { color: colors.foreground }]}>
@@ -271,24 +347,56 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_500Medium",
   },
+  carouselWrapper: {
+    width: SCREEN_WIDTH,
+    height: IMAGE_HEIGHT,
+    position: "relative",
+    backgroundColor: "#000",
+  },
+  carousel: {
+    width: SCREEN_WIDTH,
+    height: IMAGE_HEIGHT,
+  },
+  slideTouch: {
+    width: SCREEN_WIDTH,
+    height: IMAGE_HEIGHT,
+  },
   imageWrapper: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH * 0.75,
-    position: "relative",
+    height: IMAGE_HEIGHT,
     backgroundColor: "#000",
   },
   image: {
     width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH * 0.75,
+    height: IMAGE_HEIGHT,
   },
-  imagePlaceholder: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH * 0.75,
-    alignItems: "center",
+  slideLabel: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  slideLabelText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.2,
+  },
+  dots: {
+    position: "absolute",
+    bottom: 10,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
     justifyContent: "center",
+    gap: 5,
+    zIndex: 10,
   },
-  placeholderEmoji: {
-    fontSize: 80,
+  dot: {
+    borderRadius: 3,
   },
   imageOverlay: {
     position: "absolute",
@@ -297,13 +405,21 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 14,
     paddingVertical: 16,
-    backgroundColor: "transparent",
   },
   overlayName: {
     color: "#FFFFFF",
     fontSize: 20,
     fontFamily: "Inter_700Bold",
     textShadow: "0px 1px 4px rgba(0,0,0,0.8)",
+  },
+  imagePlaceholder: {
+    width: SCREEN_WIDTH,
+    height: IMAGE_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  placeholderEmoji: {
+    fontSize: 80,
   },
   actions: {
     flexDirection: "row",

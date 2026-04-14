@@ -6,3 +6,39 @@ id = "o8uxWaKPubBVXdigepGGN"
 uri = "file://artifacts/mobile/assets/images/icon.png"
 type = "image"
 title = "dinosaur explorer icon"
+
+[[generated]]
+id = "wBTQHXGFVIr3jyExRYREk"
+uri = "file://artifacts/api-server/public/images/trex_realistic.png"
+type = "image"
+title = "trex realistic"
+
+[[generated]]
+id = "7sr8209WC3newO6GzH5wp"
+uri = "file://artifacts/api-server/public/images/triceratops_realistic.png"
+type = "image"
+title = "triceratops realistic"
+
+[[generated]]
+id = "ZJQhwSYWXBevVmoJsRzW3"
+uri = "file://artifacts/api-server/public/images/brachiosaurus_realistic.png"
+type = "image"
+title = "brachiosaurus realistic"
+
+[[generated]]
+id = "udVv0H1YV-MsDnZ0FWA1z"
+uri = "file://artifacts/api-server/public/images/velociraptor_realistic.png"
+type = "image"
+title = "velociraptor realistic"
+
+[[generated]]
+id = "U4IAqQZubyGZc7LcLqSew"
+uri = "file://artifacts/api-server/public/images/stegosaurus_realistic.png"
+type = "image"
+title = "stegosaurus realistic"
+
+[[generated]]
+id = "T3-XasvZICOR_v6fwFMsz"
+uri = "file://artifacts/api-server/public/images/ankylosaurus_realistic.png"
+type = "image"
+title = "ankylosaurus realistic"
