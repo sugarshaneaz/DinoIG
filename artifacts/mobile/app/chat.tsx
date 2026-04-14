@@ -65,6 +65,23 @@ function getDinoEmoji(diet: string | undefined): string {
   return "🦎";
 }
 
+const FAREWELL_MESSAGES = [
+  "*sniffs the air* Wait... do you smell that? That's a fresh herd of something delicious. I have to go eat. Bye! 🍖",
+  "*pupils dilate* PREDATOR. BIG ONE. I have to RUN. Do not follow me. SERIOUSLY. 🏃",
+  "*looks at tiny arms* Ugh, I've been holding this phone for too long and my arms are KILLING me. We're done here. 💪",
+  "*yawns so wide jaw nearly dislocates* It's nap time. The Late Cretaceous is EXHAUSTING. Don't wake me. 😴",
+  "*distant rumbling* That's a volcano. I've seen this before. I'm leaving. You should too. 🌋",
+  "*meteor streaks across the sky* Oh that's... that's not great. I gotta go find a cave. Lovely chatting! ☄️",
+  "*splashes into swamp* My therapist says I need to set boundaries. This is me setting a boundary. Goodbye. 🌿",
+  "*stomach growls loud enough to shake the ground* I haven't eaten in three days. A whole conversation and no snacks?? Unacceptable. 🦴",
+  "*sees own reflection in lake* Whoa. I look AMAZING. I need some alone time to appreciate myself. Ciao. 🪞",
+  "*herd of dinos stampedes past* My whole family just ran by and didn't invite me. I have to go sort this out. Family drama. 😤",
+];
+
+function getRandomFarewell(): string {
+  return FAREWELL_MESSAGES[Math.floor(Math.random() * FAREWELL_MESSAGES.length)];
+}
+
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
@@ -132,6 +149,7 @@ export default function ChatScreen() {
 
       const reply = await sendChat(numericId, text, history);
 
+      const isLastMessage = newCount >= MESSAGE_LIMIT;
       setMessages((prev) => [
         ...prev,
         {
@@ -139,6 +157,13 @@ export default function ChatScreen() {
           role: "assistant",
           content: reply,
         },
+        ...(isLastMessage
+          ? [{
+              id: (Date.now() + 2).toString(),
+              role: "assistant" as const,
+              content: getRandomFarewell(),
+            }]
+          : []),
       ]);
     } catch {
       setMessages((prev) => [
@@ -237,7 +262,6 @@ export default function ChatScreen() {
           <View style={[styles.limitBanner, { paddingBottom: insets.bottom + 12 }]}>
             <Text style={styles.limitEmoji}>💤</Text>
             <Text style={styles.limitTitle}>{dinoName} has gone to sleep</Text>
-            <Text style={styles.limitSub}>You've used all {MESSAGE_LIMIT} messages with this dino today. Come back tomorrow — or go chat with another dinosaur!</Text>
           </View>
         ) : (
           <View
