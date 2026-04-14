@@ -17,7 +17,16 @@ import { useGetDinosaur } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
 
 const MESSAGE_LIMIT = 10;
-const STORAGE_KEY_PREFIX = "dino_msg_count_";
+const STORAGE_KEY_PREFIX = "dino_msg_v2_";
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+interface StoredCount {
+  date: string;
+  count: number;
+}
 
 interface Message {
   id: string;
@@ -79,7 +88,9 @@ export default function ChatScreen() {
 
   useEffect(() => {
     AsyncStorage.getItem(storageKey).then((val) => {
-      setSentCount(val ? parseInt(val, 10) : 0);
+      if (!val) { setSentCount(0); return; }
+      const stored: StoredCount = JSON.parse(val);
+      setSentCount(stored.date === todayStr() ? stored.count : 0);
     });
   }, [storageKey]);
 
@@ -111,7 +122,8 @@ export default function ChatScreen() {
 
     const newCount = sentCount + 1;
     setSentCount(newCount);
-    await AsyncStorage.setItem(storageKey, String(newCount));
+    const stored: StoredCount = { date: todayStr(), count: newCount };
+    await AsyncStorage.setItem(storageKey, JSON.stringify(stored));
 
     try {
       const history = messages
@@ -225,7 +237,7 @@ export default function ChatScreen() {
           <View style={[styles.limitBanner, { paddingBottom: insets.bottom + 12 }]}>
             <Text style={styles.limitEmoji}>💤</Text>
             <Text style={styles.limitTitle}>{dinoName} has gone to sleep</Text>
-            <Text style={styles.limitSub}>You've used all {MESSAGE_LIMIT} messages for this dino. Go chat with another dinosaur!</Text>
+            <Text style={styles.limitSub}>You've used all {MESSAGE_LIMIT} messages with this dino today. Come back tomorrow — or go chat with another dinosaur!</Text>
           </View>
         ) : (
           <View
