@@ -146,7 +146,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
             <Image
               source={{ uri: slides[0].uri ?? undefined }}
               style={styles.image}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           </TouchableOpacity>
         ) : (
@@ -171,7 +171,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
                   <Image
                     source={{ uri: slide.uri ?? undefined }}
                     style={styles.image}
-                    resizeMode="cover"
+                    resizeMode="contain"
                   />
                   {slide.label && (
                     <View style={styles.slideLabel}>
@@ -378,6 +378,7 @@ const styles = StyleSheet.create({
   image: {
     width: SCREEN_WIDTH,
     height: IMAGE_HEIGHT,
+    backgroundColor: "#000000",
   },
   slideLabel: {
     position: "absolute",
