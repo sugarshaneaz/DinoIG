@@ -135,9 +135,23 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
         </View>
       </TouchableOpacity>
 
-      {/* Image carousel */}
+      {/* Image area — carousel for multi-image posts, plain image for single */}
       <View style={styles.carouselWrapper}>
-        {slides.length > 0 ? (
+        {slides.length === 0 ? (
+          <TouchableOpacity activeOpacity={0.95} onPress={onPress}>
+            <View style={[styles.imagePlaceholder, { backgroundColor: colors.accent }]}>
+              <Text style={styles.placeholderEmoji}>🦖</Text>
+            </View>
+          </TouchableOpacity>
+        ) : slides.length === 1 ? (
+          <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.slideTouch}>
+            <Image
+              source={{ uri: slides[0].uri ?? undefined }}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        ) : (
           <>
             <ScrollView
               ref={scrollRef}
@@ -147,6 +161,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
               onScroll={handleScroll}
               scrollEventThrottle={16}
               style={styles.carousel}
+              contentContainerStyle={styles.carouselContent}
             >
               {slides.map((slide, i) => (
                 <TouchableOpacity
@@ -155,53 +170,45 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
                   onPress={onPress}
                   style={styles.slideTouch}
                 >
-                  <View style={styles.imageWrapper}>
-                    <Image
-                      source={{ uri: slide.uri ?? undefined }}
-                      style={styles.image}
-                      resizeMode="cover"
-                    />
-                    {slide.label && (
-                      <View style={styles.slideLabel}>
-                        <Text style={styles.slideLabelText}>{slide.label}</Text>
-                      </View>
-                    )}
-                  </View>
+                  <Image
+                    source={{ uri: slide.uri ?? undefined }}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
+                  {slide.label && (
+                    <View style={styles.slideLabel}>
+                      <Text style={styles.slideLabelText}>{slide.label}</Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
             {/* Dot indicators */}
-            {slides.length > 1 && (
-              <View style={styles.dots}>
-                {slides.map((_, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.dot,
-                      {
-                        backgroundColor:
-                          i === activeSlide ? "#FFFFFF" : "rgba(255,255,255,0.35)",
-                        width: i === activeSlide ? 6 : 5,
-                        height: i === activeSlide ? 6 : 5,
-                      },
-                    ]}
-                  />
-                ))}
-              </View>
-            )}
-
-            {/* Overlay dino name */}
-            <View style={styles.imageOverlay} pointerEvents="none">
-              <Text style={styles.overlayName}>{dinosaur.name}</Text>
+            <View style={styles.dots} pointerEvents="none">
+              {slides.map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    {
+                      backgroundColor:
+                        i === activeSlide ? "#FFFFFF" : "rgba(255,255,255,0.35)",
+                      width: i === activeSlide ? 6 : 5,
+                      height: i === activeSlide ? 6 : 5,
+                    },
+                  ]}
+                />
+              ))}
             </View>
           </>
-        ) : (
-          <TouchableOpacity activeOpacity={0.95} onPress={onPress}>
-            <View style={[styles.imagePlaceholder, { backgroundColor: colors.accent }]}>
-              <Text style={styles.placeholderEmoji}>🦖</Text>
-            </View>
-          </TouchableOpacity>
+        )}
+
+        {/* Overlay dino name — always shown */}
+        {slides.length > 0 && (
+          <View style={styles.imageOverlay} pointerEvents="none">
+            <Text style={styles.overlayName}>{dinosaur.name}</Text>
+          </View>
         )}
       </View>
 
@@ -355,6 +362,10 @@ const styles = StyleSheet.create({
   },
   carousel: {
     width: SCREEN_WIDTH,
+    height: IMAGE_HEIGHT,
+    flexGrow: 0,
+  },
+  carouselContent: {
     height: IMAGE_HEIGHT,
   },
   slideTouch: {
