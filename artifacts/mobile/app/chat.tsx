@@ -12,10 +12,12 @@ import {
 } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useGetDinosaur } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
-import { getRealisticImageUrl } from "@/lib/realisticImages";
-import { resolveImageUrl } from "@/lib/resolveImageUrl";
+
+const MESSAGE_LIMIT = 10;
+const STORAGE_KEY_PREFIX = "dino_msg_count_";
 
 interface Message {
   id: string;
@@ -40,7 +42,7 @@ async function sendChat(
   return data.reply;
 }
 
-function DinoAvatar({ name, emoji }: { name: string; emoji: string }) {
+function DinoAvatar({ emoji }: { emoji: string }) {
   return (
     <View style={styles.avatarCircle}>
       <Text style={styles.avatarEmoji}>{emoji}</Text>
@@ -56,7 +58,6 @@ function getDinoEmoji(diet: string | undefined): string {
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const colors = useColors();
   const insets = useSafeAreaInsets();
   const numericId = parseInt(id ?? "0", 10);
 
@@ -67,25 +68,36 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sentCount, setSentCount] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
   const emoji = getDinoEmoji(dino?.diet);
   const dinoName = dino?.name ?? "Dinosaur";
+  const storageKey = `${STORAGE_KEY_PREFIX}${numericId}`;
+  const limitReached = sentCount >= MESSAGE_LIMIT;
+  const remaining = MESSAGE_LIMIT - sentCount;
+
+  useEffect(() => {
+    AsyncStorage.getItem(storageKey).then((val) => {
+      setSentCount(val ? parseInt(val, 10) : 0);
+    });
+  }, [storageKey]);
 
   useEffect(() => {
     if (dino && messages.length === 0) {
-      const greeting: Message = {
-        id: "greeting",
-        role: "assistant",
-        content: `*roars softly* Oh! A human with a tiny glowing rectangle! I'm ${dino.name}. Ask me anything — but make it interesting. 🦖`,
-      };
-      setMessages([greeting]);
+      setMessages([
+        {
+          id: "greeting",
+          role: "assistant",
+          content: `*roars softly* Oh! A human with a tiny glowing rectangle! I'm ${dino.name}. Ask me anything — but make it interesting. 🦖`,
+        },
+      ]);
     }
   }, [dino]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || loading || !numericId) return;
+    if (!text || loading || !numericId || limitReached) return;
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -97,6 +109,10 @@ export default function ChatScreen() {
     setInput("");
     setLoading(true);
 
+    const newCount = sentCount + 1;
+    setSentCount(newCount);
+    await AsyncStorage.setItem(storageKey, String(newCount));
+
     try {
       const history = messages
         .filter((m) => m.id !== "greeting")
@@ -104,12 +120,14 @@ export default function ChatScreen() {
 
       const reply = await sendChat(numericId, text, history);
 
-      const assistantMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: reply,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: reply,
+        },
+      ]);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -123,22 +141,20 @@ export default function ChatScreen() {
       setLoading(false);
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
-  }, [input, loading, numericId, messages]);
+  }, [input, loading, numericId, messages, sentCount, limitReached, storageKey]);
 
   const renderMessage = ({ item }: { item: Message }) => {
     const isUser = item.role === "user";
     return (
       <View style={[styles.msgRow, isUser ? styles.msgRowRight : styles.msgRowLeft]}>
-        {!isUser && <DinoAvatar name={dinoName} emoji={emoji} />}
+        {!isUser && <DinoAvatar emoji={emoji} />}
         <View
           style={[
             styles.bubble,
-            isUser
-              ? [styles.bubbleUser, { backgroundColor: "#0095F6" }]
-              : [styles.bubbleDino, { backgroundColor: "#1C1C1E" }],
+            isUser ? styles.bubbleUser : styles.bubbleDino,
           ]}
         >
-          <Text style={[styles.bubbleText, { color: "#FFFFFF" }]}>{item.content}</Text>
+          <Text style={styles.bubbleText}>{item.content}</Text>
         </View>
       </View>
     );
@@ -154,29 +170,34 @@ export default function ChatScreen() {
           headerTitleStyle: { fontFamily: "Inter_600SemiBold", color: "#FFFFFF" },
           headerRight: () => (
             <View style={styles.headerStatus}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusText}>Active now</Text>
+              <View style={[styles.statusDot, limitReached && styles.statusDotOff]} />
+              <Text style={styles.statusText}>{limitReached ? "Sleeping" : "Active now"}</Text>
             </View>
           ),
         }}
       />
       <KeyboardAvoidingView
-        style={[styles.container, { backgroundColor: "#000000" }]}
+        style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        {/* Dino header */}
-        <View style={[styles.dinoHeader, { borderBottomColor: "#1C1C1E" }]}>
+        <View style={styles.dinoHeader}>
           <View style={styles.dinoHeaderAvatar}>
             <Text style={styles.dinoHeaderEmoji}>{emoji}</Text>
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.dinoHeaderName}>{dinoName}</Text>
-            <Text style={styles.dinoHeaderSub}>{dino?.period ?? ""} · {dino?.diet ?? ""}</Text>
+            <Text style={styles.dinoHeaderSub}>
+              {dino?.period ?? ""} · {dino?.diet ?? ""}
+            </Text>
           </View>
+          {!limitReached && (
+            <View style={styles.counter}>
+              <Text style={styles.counterText}>{remaining} left</Text>
+            </View>
+          )}
         </View>
 
-        {/* Messages */}
         <FlatList
           ref={flatListRef}
           data={messages}
@@ -193,50 +214,53 @@ export default function ChatScreen() {
 
         {loading && (
           <View style={styles.typingRow}>
-            <DinoAvatar name={dinoName} emoji={emoji} />
-            <View style={[styles.typingBubble, { backgroundColor: "#1C1C1E" }]}>
+            <DinoAvatar emoji={emoji} />
+            <View style={styles.typingBubble}>
               <ActivityIndicator size="small" color="#8E8E8E" />
             </View>
           </View>
         )}
 
-        {/* Input bar */}
-        <View
-          style={[
-            styles.inputBar,
-            {
-              borderTopColor: "#1C1C1E",
-              paddingBottom: insets.bottom || 12,
-              backgroundColor: "#000000",
-            },
-          ]}
-        >
-          <TextInput
-            style={[styles.input, { color: "#FFFFFF", borderColor: "#262626" }]}
-            value={input}
-            onChangeText={setInput}
-            placeholder={`Message ${dinoName}...`}
-            placeholderTextColor="#4A4A4A"
-            returnKeyType="send"
-            onSubmitEditing={handleSend}
-            multiline
-            maxLength={300}
-          />
-          <TouchableOpacity
-            onPress={handleSend}
-            disabled={!input.trim() || loading}
-            style={styles.sendBtn}
+        {limitReached ? (
+          <View style={[styles.limitBanner, { paddingBottom: insets.bottom + 12 }]}>
+            <Text style={styles.limitEmoji}>💤</Text>
+            <Text style={styles.limitTitle}>{dinoName} has gone to sleep</Text>
+            <Text style={styles.limitSub}>You've used all {MESSAGE_LIMIT} messages for this dino. Go chat with another dinosaur!</Text>
+          </View>
+        ) : (
+          <View
+            style={[
+              styles.inputBar,
+              { paddingBottom: insets.bottom || 12 },
+            ]}
           >
-            <Text
-              style={[
-                styles.sendBtnText,
-                { color: input.trim() && !loading ? "#0095F6" : "#1C1C1E" },
-              ]}
+            <TextInput
+              style={styles.input}
+              value={input}
+              onChangeText={setInput}
+              placeholder={`Message ${dinoName}...`}
+              placeholderTextColor="#4A4A4A"
+              returnKeyType="send"
+              onSubmitEditing={handleSend}
+              multiline
+              maxLength={300}
+            />
+            <TouchableOpacity
+              onPress={handleSend}
+              disabled={!input.trim() || loading}
+              style={styles.sendBtn}
             >
-              Send
-            </Text>
-          </TouchableOpacity>
-        </View>
+              <Text
+                style={[
+                  styles.sendBtnText,
+                  { color: input.trim() && !loading ? "#0095F6" : "#262626" },
+                ]}
+              >
+                Send
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </>
   );
@@ -245,6 +269,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#000000",
   },
   dinoHeader: {
     flexDirection: "row",
@@ -252,6 +277,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#1C1C1E",
     gap: 12,
   },
   dinoHeaderAvatar: {
@@ -262,9 +288,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  dinoHeaderEmoji: {
-    fontSize: 26,
-  },
+  dinoHeaderEmoji: { fontSize: 26 },
   dinoHeaderName: {
     color: "#FFFFFF",
     fontFamily: "Inter_600SemiBold",
@@ -275,6 +299,17 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 12,
     marginTop: 1,
+  },
+  counter: {
+    backgroundColor: "#1C1C1E",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  counterText: {
+    color: "#8E8E8E",
+    fontFamily: "Inter_400Regular",
+    fontSize: 12,
   },
   messageList: {
     paddingHorizontal: 12,
@@ -287,12 +322,8 @@ const styles = StyleSheet.create({
     gap: 8,
     marginVertical: 2,
   },
-  msgRowLeft: {
-    justifyContent: "flex-start",
-  },
-  msgRowRight: {
-    justifyContent: "flex-end",
-  },
+  msgRowLeft: { justifyContent: "flex-start" },
+  msgRowRight: { justifyContent: "flex-end" },
   avatarCircle: {
     width: 30,
     height: 30,
@@ -302,9 +333,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  avatarEmoji: {
-    fontSize: 15,
-  },
+  avatarEmoji: { fontSize: 15 },
   bubble: {
     maxWidth: "72%",
     paddingHorizontal: 14,
@@ -312,12 +341,15 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   bubbleUser: {
+    backgroundColor: "#0095F6",
     borderBottomRightRadius: 4,
   },
   bubbleDino: {
+    backgroundColor: "#1C1C1E",
     borderBottomLeftRadius: 4,
   },
   bubbleText: {
+    color: "#FFFFFF",
     fontFamily: "Inter_400Regular",
     fontSize: 15,
     lineHeight: 21,
@@ -334,6 +366,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 18,
     borderBottomLeftRadius: 4,
+    backgroundColor: "#1C1C1E",
   },
   inputBar: {
     flexDirection: "row",
@@ -341,7 +374,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 10,
     borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#1C1C1E",
     gap: 10,
+    backgroundColor: "#000000",
   },
   input: {
     flex: 1,
@@ -352,10 +387,10 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 15,
     maxHeight: 100,
+    color: "#FFFFFF",
+    borderColor: "#262626",
   },
-  sendBtn: {
-    paddingHorizontal: 4,
-  },
+  sendBtn: { paddingHorizontal: 4 },
   sendBtnText: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 15,
@@ -372,9 +407,35 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#3FC45F",
   },
+  statusDotOff: {
+    backgroundColor: "#4A4A4A",
+  },
   statusText: {
     color: "#8E8E8E",
     fontFamily: "Inter_400Regular",
     fontSize: 12,
+  },
+  limitBanner: {
+    alignItems: "center",
+    paddingHorizontal: 32,
+    paddingTop: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#1C1C1E",
+    backgroundColor: "#000000",
+    gap: 6,
+  },
+  limitEmoji: { fontSize: 36, marginBottom: 4 },
+  limitTitle: {
+    color: "#FFFFFF",
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    textAlign: "center",
+  },
+  limitSub: {
+    color: "#8E8E8E",
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    textAlign: "center",
+    lineHeight: 18,
   },
 });
