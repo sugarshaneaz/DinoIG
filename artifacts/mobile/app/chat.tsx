@@ -85,6 +85,16 @@ const FAREWELL_MESSAGES = [
   "*stares into distance* My egg is hatching TODAY and I completely forgot. What kind of parent am I. I have to GO. 🥚",
   "*hears distant roar* That's Gerald. Gerald always ruins everything. I refuse to deal with Gerald right now. Running away. 😠",
   "*looks down at you* You're very small, you know that? Anyway. I have big dinosaur things to do. Farewell, tiny one. 🦖",
+  "*freezes mid-sentence* Did I leave the cave open? I absolutely left the cave open. Everything I own is in that cave. 🪨",
+  "*stands up abruptly* I just realized I haven't had water in four days. FOUR DAYS. I have to go find a river immediately. 💧",
+  "*narrows eyes at sky* Those clouds look very suspicious. Last time I ignored suspicious clouds, a whole era ended. I'm going inside. ☁️",
+  "*spots something in distance* Is that a new species?? If I document this first I'll be FAMOUS. Can't talk. Science waits for no one. 🔭",
+  "*stretches dramatically* My back has been killing me ever since I tried to scratch it with my front arms. Chiropractor appointment. Don't ask. 🦴",
+  "*sniffs self* Oh no. Oh no no no. I need to go find a waterfall RIGHT NOW. This is not up for discussion. 💨",
+  "*perks up suddenly* The Migration is starting and I forgot to RSVP. Every year I do this. Every single year. Running now. 🌍",
+  "*gasps* My rival Brenda just walked by looking absolutely incredible. I have to go look better than Brenda immediately. Goodbye. 💅",
+  "*long pause* ...I just remembered I'm extinct. This has been a lot to process. I need a moment alone. 🪦",
+  "*looks at you with sudden suspicion* Wait. Are you a paleontologist?? I knew it. I KNEW something was off. I'm not being studied. BYE. 🏃",
 ];
 
 function getRandomFarewell(): string {
