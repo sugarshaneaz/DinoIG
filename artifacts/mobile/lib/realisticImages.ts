@@ -5,6 +5,7 @@ const REALISTIC_IMAGE_MAP: Record<string, string> = {
   "velociraptor": "/api/images/velociraptor_realistic.png",
   "stegosaurus": "/api/images/stegosaurus_realistic.png",
   "ankylosaurus": "/api/images/ankylosaurus_realistic.png",
+  "pterodactyl": "/api/images/pterodactyl_realistic.png",
 };
 
 export function getRealisticImageUrl(dinoName: string): string | null {

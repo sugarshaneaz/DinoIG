@@ -148,7 +148,7 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
             <Image
               source={{ uri: slides[0].uri ?? undefined }}
               style={styles.image}
-              resizeMode="contain"
+              resizeMode="cover"
             />
           </TouchableOpacity>
         ) : (

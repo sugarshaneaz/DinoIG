@@ -42,3 +42,9 @@ id = "T3-XasvZICOR_v6fwFMsz"
 uri = "file://artifacts/api-server/public/images/ankylosaurus_realistic.png"
 type = "image"
 title = "ankylosaurus realistic"
+
+[[generated]]
+id = "TCYqGuA1QBGsypp7ZvAm8"
+uri = "file://artifacts/api-server/public/images/pterodactyl_realistic.png"
+type = "image"
+title = "pterodactyl realistic"
