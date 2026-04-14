@@ -76,6 +76,15 @@ const FAREWELL_MESSAGES = [
   "*stomach growls loud enough to shake the ground* I haven't eaten in three days. A whole conversation and no snacks?? Unacceptable. 🦴",
   "*sees own reflection in lake* Whoa. I look AMAZING. I need some alone time to appreciate myself. Ciao. 🪞",
   "*herd of dinos stampedes past* My whole family just ran by and didn't invite me. I have to go sort this out. Family drama. 😤",
+  "*squints at horizon* Is that... a tar pit? I've lost THREE cousins to that thing. I need to go warn the others. 🚨",
+  "*whispers* I think I'm being followed. Don't look. Just act normal. I'm going to slowly back away now. 👀",
+  "*checks shadow* Oh wow, it is WAY past my feeding window. My dietician is going to be furious. Gotta go. 🌅",
+  "*trembles slightly* The ground is shaking. Either a sauropod is nearby or I'm having a moment. Either way — I'm out. 🦕",
+  "*gasps* I just remembered I left some prey half-eaten THREE miles back. Someone's going to steal it. I CANNOT let that happen. 🥩",
+  "*sneezes violently* Excuse me. I think I'm allergic to this conversation. Or ferns. Probably ferns. Bye. 🌿",
+  "*stares into distance* My egg is hatching TODAY and I completely forgot. What kind of parent am I. I have to GO. 🥚",
+  "*hears distant roar* That's Gerald. Gerald always ruins everything. I refuse to deal with Gerald right now. Running away. 😠",
+  "*looks down at you* You're very small, you know that? Anyway. I have big dinosaur things to do. Farewell, tiny one. 🦖",
 ];
 
 function getRandomFarewell(): string {
