@@ -48,3 +48,9 @@ id = "TCYqGuA1QBGsypp7ZvAm8"
 uri = "file://artifacts/api-server/public/images/pterodactyl_realistic.png"
 type = "image"
 title = "pterodactyl realistic"
+
+[[generated]]
+id = "P-Q5lmx9VCKuX_IdkikKz"
+uri = "file://artifacts/api-server/public/images/pterodactyl_fossil.png"
+type = "image"
+title = "pterodactyl fossil specimen"
