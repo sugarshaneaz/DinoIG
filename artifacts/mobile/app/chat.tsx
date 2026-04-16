@@ -120,7 +120,6 @@ export default function ChatScreen() {
   const dinoName = dino?.name ?? "Dinosaur";
   const storageKey = `${STORAGE_KEY_PREFIX}${numericId}`;
   const limitReached = sentCount >= MESSAGE_LIMIT;
-  const remaining = MESSAGE_LIMIT - sentCount;
 
   useEffect(() => {
     AsyncStorage.getItem(storageKey).then((val) => {
@@ -247,11 +246,6 @@ export default function ChatScreen() {
               {dino?.period ?? ""} · {dino?.diet ?? ""}
             </Text>
           </View>
-          {!limitReached && (
-            <View style={styles.counter}>
-              <Text style={styles.counterText}>{remaining} left</Text>
-            </View>
-          )}
         </View>
 
         <FlatList
@@ -354,17 +348,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 12,
     marginTop: 1,
-  },
-  counter: {
-    backgroundColor: "#1C1C1E",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  counterText: {
-    color: "#8E8E8E",
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
   },
   messageList: {
     paddingHorizontal: 12,
