@@ -57,7 +57,7 @@ export default function FeedScreen() {
 
   const mergedDinosaurs = (dinosaurs ?? []).map((d) => localOverrides[d.id] ?? d);
 
-  if (isLoading && !refreshing) {
+  if (!dinosaurs && isLoading && !refreshing) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
