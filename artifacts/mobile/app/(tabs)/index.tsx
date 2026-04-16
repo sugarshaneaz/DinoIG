@@ -12,6 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGetDinosaurs } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
 import { DinoPost } from "@/components/DinoPost";
+import { PaywallModal } from "@/components/PaywallModal";
+import { usePremium, FREE_DINO_COUNT } from "@/lib/usePremium";
 import { useRouter } from "expo-router";
 import type { Dinosaur } from "@workspace/api-client-react";
 
@@ -21,7 +23,9 @@ export default function FeedScreen() {
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
   const [localOverrides, setLocalOverrides] = useState<Record<number, Dinosaur>>({});
+  const [paywallVisible, setPaywallVisible] = useState(false);
 
+  const { isPremium, unlock } = usePremium();
   const { data: dinosaurs, isLoading, error, refetch } = useGetDinosaurs({});
 
   const handleRefresh = useCallback(async () => {
@@ -32,15 +36,24 @@ export default function FeedScreen() {
   }, [refetch]);
 
   const handlePress = useCallback(
-    (dinosaur: Dinosaur) => {
+    (dinosaur: Dinosaur, index: number) => {
+      if (!isPremium && index >= FREE_DINO_COUNT) {
+        setPaywallVisible(true);
+        return;
+      }
       router.push({ pathname: "/detail", params: { id: dinosaur.id } });
     },
-    [router]
+    [router, isPremium]
   );
 
   const handleLiked = useCallback((updated: Dinosaur) => {
     setLocalOverrides((prev) => ({ ...prev, [updated.id]: updated }));
   }, []);
+
+  const handlePurchase = useCallback(async () => {
+    await unlock();
+    setPaywallVisible(false);
+  }, [unlock]);
 
   const mergedDinosaurs = (dinosaurs ?? []).map((d) => localOverrides[d.id] ?? d);
 
@@ -67,11 +80,13 @@ export default function FeedScreen() {
       <FlatList
         data={mergedDinosaurs}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <DinoPost
             dinosaur={item}
-            onPress={() => handlePress(item)}
+            isLocked={!isPremium && index >= FREE_DINO_COUNT}
+            onPress={() => handlePress(item, index)}
             onLiked={handleLiked}
+            onLockedAction={() => setPaywallVisible(true)}
           />
         )}
         contentContainerStyle={{
@@ -96,6 +111,12 @@ export default function FeedScreen() {
           </View>
         }
         showsVerticalScrollIndicator={false}
+      />
+
+      <PaywallModal
+        visible={paywallVisible}
+        onClose={() => setPaywallVisible(false)}
+        onPurchase={handlePurchase}
       />
     </View>
   );

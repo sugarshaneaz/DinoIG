@@ -28,9 +28,11 @@ interface DinoPostProps {
   dinosaur: Dinosaur;
   onPress: () => void;
   onLiked?: (updated: Dinosaur) => void;
+  isLocked?: boolean;
+  onLockedAction?: () => void;
 }
 
-export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
+export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLockedAction }: DinoPostProps) {
   const colors = useColors();
   const [liked, setLiked] = useState(false);
   const [localLikes, setLocalLikes] = useState(dinosaur.likesCount);
@@ -133,177 +135,180 @@ export function DinoPost({ dinosaur, onPress, onLiked }: DinoPostProps) {
         </View>
       </TouchableOpacity>
 
-      {/* Image area — carousel for multi-image posts, plain image for single */}
-      <View style={styles.carouselWrapper}>
-        {slides.length === 0 ? (
-          <TouchableOpacity activeOpacity={0.95} onPress={onPress}>
-            <View style={[styles.imagePlaceholder, { backgroundColor: colors.accent }]}>
-              <Text style={styles.placeholderEmoji}>🦖</Text>
+      {/* Locked overlay — shown for non-premium dinos */}
+      {isLocked && (
+        <TouchableOpacity
+          activeOpacity={0.92}
+          onPress={onLockedAction}
+          style={styles.lockedCard}
+        >
+          <View style={styles.lockedInner}>
+            <Feather name="lock" size={32} color="#FFFFFF" style={{ marginBottom: 12 }} />
+            <Text style={styles.lockedTitle}>300+ More Dinos Waiting</Text>
+            <Text style={styles.lockedSub}>$4.99 for lifetime access</Text>
+            <View style={styles.lockedBtn}>
+              <Text style={styles.lockedBtnText}>Unlock Now</Text>
             </View>
-          </TouchableOpacity>
-        ) : slides.length === 1 ? (
-          <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.slideTouch}>
-            <Image
-              source={{ uri: slides[0].uri ?? undefined }}
-              style={styles.image}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        ) : (
-          <>
-            <ScrollView
-              ref={scrollRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              style={styles.carousel}
-              contentContainerStyle={styles.carouselContent}
-            >
-              {slides.map((slide, i) => (
-                <TouchableOpacity
-                  key={i}
-                  activeOpacity={0.95}
-                  onPress={onPress}
-                  style={styles.slideTouch}
-                >
-                  <Image
-                    source={{ uri: slide.uri ?? undefined }}
-                    style={styles.image}
-                    resizeMode="contain"
-                  />
-                  {slide.label && (
-                    <View style={styles.slideLabel}>
-                      <Text style={styles.slideLabelText}>{slide.label}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Dot indicators */}
-            <View style={styles.dots} pointerEvents="none">
-              {slides.map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.dot,
-                    {
-                      backgroundColor:
-                        i === activeSlide ? "#FFFFFF" : "rgba(255,255,255,0.35)",
-                      width: i === activeSlide ? 6 : 5,
-                      height: i === activeSlide ? 6 : 5,
-                    },
-                  ]}
-                />
-              ))}
-            </View>
-          </>
-        )}
-
-        {/* Overlay dino name — always shown */}
-        {slides.length > 0 && (
-          <View style={styles.imageOverlay} pointerEvents="none">
-            <Text style={styles.overlayName}>{dinosaur.name}</Text>
           </View>
-        )}
-      </View>
-
-      {/* Action buttons */}
-      <View style={styles.actions}>
-        <View style={styles.leftActions}>
-          <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
-            <Feather
-              name="heart"
-              size={26}
-              color={liked ? colors.like : colors.likeInactive}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={handleComments}>
-            <Feather
-              name="message-circle"
-              size={26}
-              color={showComments ? colors.foreground : colors.comment}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={handleDM}>
-            <Feather name="send" size={26} color={colors.share} />
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleRepost}>
-          <Feather
-            name="repeat"
-            size={26}
-            color={reposted ? "#1DA1F2" : colors.repost}
-          />
         </TouchableOpacity>
-      </View>
+      )}
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        {localLikes > 0 && (
-          <Text style={[styles.likesText, { color: colors.foreground }]}>
-            {formatCount(localLikes)} {localLikes === 1 ? "like" : "likes"}
-          </Text>
-        )}
-        {reposts > 0 && (
-          <Text style={[styles.repostText, { color: colors.mutedForeground }]}>
-            {reposts} {reposts === 1 ? "repost" : "reposts"}
-          </Text>
-        )}
-        <Text style={[styles.caption, { color: colors.foreground }]} numberOfLines={2}>
-          <Text style={styles.captionUsername}>
-            {dinosaur.name.toLowerCase().replace(/\s+/g, "_")}{" "}
-          </Text>
-          {dinosaur.description}
-        </Text>
-        <Text style={[styles.period, { color: colors.mutedForeground }]}>
-          {dinosaur.period} · {dinosaur.diet}
-        </Text>
-
-        {showComments && (
-          <View style={styles.commentsSection}>
-            <View style={[styles.commentsDivider, { backgroundColor: colors.border }]} />
-            {comments.map((c, i) => (
-              <View key={i} style={styles.commentThread}>
-                <View style={styles.commentRow}>
-                  <Text style={styles.commentAvatar}>{c.avatar}</Text>
-                  <View style={styles.commentBody}>
-                    <Text style={[styles.commentLine, { color: colors.foreground }]}>
-                      <Text style={styles.commentUsername}>{c.username} </Text>
-                      {c.text}
-                    </Text>
-                  </View>
+      {/* Image + actions — hidden for locked dinos */}
+      {!isLocked && (
+        <>
+          <View style={styles.carouselWrapper}>
+            {slides.length === 0 ? (
+              <TouchableOpacity activeOpacity={0.95} onPress={onPress}>
+                <View style={[styles.imagePlaceholder, { backgroundColor: colors.accent }]}>
+                  <Text style={styles.placeholderEmoji}>🦖</Text>
                 </View>
-                {c.replies && c.replies.length > 0 && (
-                  <View style={styles.repliesBlock}>
-                    <View style={[styles.replyThreadLine, { backgroundColor: colors.border }]} />
-                    <View style={styles.repliesInner}>
-                      {c.replies.map((r, j) => (
-                        <View key={j} style={styles.replyRow}>
-                          <Text style={styles.replyAvatar}>{r.avatar}</Text>
-                          <View style={styles.commentBody}>
-                            <Text style={[styles.commentLine, { color: colors.foreground }]}>
-                              <Text style={styles.commentUsername}>{r.username} </Text>
-                              {r.text}
-                            </Text>
-                          </View>
+              </TouchableOpacity>
+            ) : slides.length === 1 ? (
+              <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.slideTouch}>
+                <Image
+                  source={{ uri: slides[0].uri ?? undefined }}
+                  style={styles.image}
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+            ) : (
+              <>
+                <ScrollView
+                  ref={scrollRef}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={handleScroll}
+                  scrollEventThrottle={16}
+                  style={styles.carousel}
+                  contentContainerStyle={styles.carouselContent}
+                >
+                  {slides.map((slide, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.95}
+                      onPress={onPress}
+                      style={styles.slideTouch}
+                    >
+                      <Image
+                        source={{ uri: slide.uri ?? undefined }}
+                        style={styles.image}
+                        resizeMode="contain"
+                      />
+                      {slide.label && (
+                        <View style={styles.slideLabel}>
+                          <Text style={styles.slideLabelText}>{slide.label}</Text>
                         </View>
-                      ))}
-                    </View>
-                  </View>
-                )}
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <View style={styles.dots} pointerEvents="none">
+                  {slides.map((_, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.dot,
+                        {
+                          backgroundColor:
+                            i === activeSlide ? "#FFFFFF" : "rgba(255,255,255,0.35)",
+                          width: i === activeSlide ? 6 : 5,
+                          height: i === activeSlide ? 6 : 5,
+                        },
+                      ]}
+                    />
+                  ))}
+                </View>
+              </>
+            )}
+            {slides.length > 0 && (
+              <View style={styles.imageOverlay} pointerEvents="none">
+                <Text style={styles.overlayName}>{dinosaur.name}</Text>
               </View>
-            ))}
-            <TouchableOpacity onPress={handleComments} style={styles.hideBtn}>
-              <Text style={[styles.hideBtnText, { color: colors.mutedForeground }]}>
-                Hide comments
-              </Text>
+            )}
+          </View>
+
+          <View style={styles.actions}>
+            <View style={styles.leftActions}>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleLike}>
+                <Feather name="heart" size={26} color={liked ? colors.like : colors.likeInactive} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleComments}>
+                <Feather name="message-circle" size={26} color={showComments ? colors.foreground : colors.comment} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleDM}>
+                <Feather name="send" size={26} color={colors.share} />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleRepost}>
+              <Feather name="repeat" size={26} color={reposted ? "#1DA1F2" : colors.repost} />
             </TouchableOpacity>
           </View>
-        )}
-      </View>
+
+          <View style={styles.footer}>
+            {localLikes > 0 && (
+              <Text style={[styles.likesText, { color: colors.foreground }]}>
+                {formatCount(localLikes)} {localLikes === 1 ? "like" : "likes"}
+              </Text>
+            )}
+            {reposts > 0 && (
+              <Text style={[styles.repostText, { color: colors.mutedForeground }]}>
+                {reposts} {reposts === 1 ? "repost" : "reposts"}
+              </Text>
+            )}
+            <Text style={[styles.caption, { color: colors.foreground }]} numberOfLines={2}>
+              <Text style={styles.captionUsername}>
+                {dinosaur.name.toLowerCase().replace(/\s+/g, "_")}{" "}
+              </Text>
+              {dinosaur.description}
+            </Text>
+            <Text style={[styles.period, { color: colors.mutedForeground }]}>
+              {dinosaur.period} · {dinosaur.diet}
+            </Text>
+            {showComments && (
+              <View style={styles.commentsSection}>
+                <View style={[styles.commentsDivider, { backgroundColor: colors.border }]} />
+                {comments.map((c, i) => (
+                  <View key={i} style={styles.commentThread}>
+                    <View style={styles.commentRow}>
+                      <Text style={styles.commentAvatar}>{c.avatar}</Text>
+                      <View style={styles.commentBody}>
+                        <Text style={[styles.commentLine, { color: colors.foreground }]}>
+                          <Text style={styles.commentUsername}>{c.username} </Text>
+                          {c.text}
+                        </Text>
+                      </View>
+                    </View>
+                    {c.replies && c.replies.length > 0 && (
+                      <View style={styles.repliesBlock}>
+                        <View style={[styles.replyThreadLine, { backgroundColor: colors.border }]} />
+                        <View style={styles.repliesInner}>
+                          {c.replies.map((r, j) => (
+                            <View key={j} style={styles.replyRow}>
+                              <Text style={styles.replyAvatar}>{r.avatar}</Text>
+                              <View style={styles.commentBody}>
+                                <Text style={[styles.commentLine, { color: colors.foreground }]}>
+                                  <Text style={styles.commentUsername}>{r.username} </Text>
+                                  {r.text}
+                                </Text>
+                              </View>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                ))}
+                <TouchableOpacity onPress={handleComments} style={styles.hideBtn}>
+                  <Text style={[styles.hideBtnText, { color: colors.mutedForeground }]}>
+                    Hide comments
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </>
+      )}
     </View>
   );
 }
@@ -312,6 +317,42 @@ const styles = StyleSheet.create({
   container: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     marginBottom: 8,
+  },
+  lockedCard: {
+    width: SCREEN_WIDTH,
+    height: IMAGE_HEIGHT,
+    backgroundColor: "#0A0A0A",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  lockedInner: {
+    alignItems: "center",
+    paddingHorizontal: 32,
+  },
+  lockedTitle: {
+    color: "#FFFFFF",
+    fontFamily: "Inter_700Bold",
+    fontSize: 18,
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  lockedSub: {
+    color: "#8E8E8E",
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  lockedBtn: {
+    backgroundColor: "#0095F6",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+  },
+  lockedBtnText: {
+    color: "#FFFFFF",
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
   },
   header: {
     flexDirection: "row",
