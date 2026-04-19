@@ -50,8 +50,8 @@ export default function FeedScreen() {
     setLocalOverrides((prev) => ({ ...prev, [updated.id]: updated }));
   }, []);
 
-  const handlePurchase = useCallback(async () => {
-    await unlock();
+  const handlePurchase = useCallback(async (plan: "monthly" | "lifetime") => {
+    await unlock(plan);
     setPaywallVisible(false);
   }, [unlock]);
 

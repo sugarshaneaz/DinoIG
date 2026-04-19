@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -14,16 +14,24 @@ import { useSubscription } from "@/lib/revenuecat";
 interface PaywallModalProps {
   visible: boolean;
   onClose: () => void;
-  onPurchase: () => void;
+  onPurchase: (plan: "monthly" | "lifetime") => void;
 }
 
 export function PaywallModal({ visible, onClose, onPurchase }: PaywallModalProps) {
   const insets = useSafeAreaInsets();
   const { offerings, isPurchasing } = useSubscription();
+  const [selected, setSelected] = useState<"monthly" | "lifetime">("monthly");
 
   const currentOffering = offerings?.current;
-  const packageToPurchase = currentOffering?.availablePackages[0];
-  const priceString = packageToPurchase?.product.priceString ?? "$4.99";
+  const monthlyPkg  = currentOffering?.availablePackages.find((p) => p.packageType === "MONTHLY");
+  const lifetimePkg = currentOffering?.availablePackages.find((p) => p.packageType === "LIFETIME");
+
+  const monthlyPrice  = monthlyPkg?.product.priceString  ?? "$4.99";
+  const lifetimePrice = lifetimePkg?.product.priceString ?? "$14.99";
+
+  const ctaLabel = selected === "monthly"
+    ? `Start Monthly – ${monthlyPrice}/mo`
+    : `Get Lifetime Access – ${lifetimePrice}`;
 
   return (
     <Modal
@@ -42,28 +50,53 @@ export function PaywallModal({ visible, onClose, onPurchase }: PaywallModalProps
           <Text style={styles.emoji}>🦕</Text>
           <Text style={styles.title}>300+ More Dinos Await</Text>
           <Text style={styles.subtitle}>
-            You've met the famous ones. Now unlock the full prehistoric world — 300 more dinosaurs to explore, read about, and chat with.
+            Unlock the full prehistoric world — 300 more dinosaurs to explore, read about, and chat with.
           </Text>
+
+          {/* Plan picker */}
+          <View style={styles.planRow}>
+            <TouchableOpacity
+              style={[styles.planCard, selected === "monthly" && styles.planCardSelected]}
+              onPress={() => setSelected("monthly")}
+              activeOpacity={0.8}
+            >
+              {selected === "monthly" && <View style={styles.checkDot} />}
+              <Text style={styles.planLabel}>Monthly</Text>
+              <Text style={styles.planPrice}>{monthlyPrice}</Text>
+              <Text style={styles.planSub}>per month</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.planCard, selected === "lifetime" && styles.planCardSelected]}
+              onPress={() => setSelected("lifetime")}
+              activeOpacity={0.8}
+            >
+              {selected === "lifetime" && <View style={styles.checkDot} />}
+              <View style={styles.bestValueBadge}>
+                <Text style={styles.bestValueText}>BEST VALUE</Text>
+              </View>
+              <Text style={styles.planLabel}>Lifetime</Text>
+              <Text style={styles.planPrice}>{lifetimePrice}</Text>
+              <Text style={styles.planSub}>one-time</Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.perks}>
             <PerkRow icon="message-circle" text="Chat with every dinosaur" />
-            <PerkRow icon="image"         text="Life restorations + fossil photos" />
-            <PerkRow icon="unlock"        text="All 311 dinosaurs, forever" />
-            <PerkRow icon="zap"           text="One-time payment, no subscription" />
+            <PerkRow icon="image"          text="Life restorations + fossil photos" />
+            <PerkRow icon="unlock"         text="All 311 dinosaurs unlocked" />
           </View>
 
           <TouchableOpacity
             style={[styles.purchaseBtn, isPurchasing && styles.purchaseBtnDisabled]}
-            onPress={onPurchase}
+            onPress={() => onPurchase(selected)}
             activeOpacity={0.85}
             disabled={isPurchasing}
           >
             {isPurchasing ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.purchaseBtnText}>
-                Get Lifetime Access — {priceString}
-              </Text>
+              <Text style={styles.purchaseBtnText}>{ctaLabel}</Text>
             )}
           </TouchableOpacity>
 
@@ -80,7 +113,7 @@ export function PaywallModal({ visible, onClose, onPurchase }: PaywallModalProps
 function PerkRow({ icon, text }: { icon: string; text: string }) {
   return (
     <View style={styles.perkRow}>
-      <Feather name={icon as any} size={18} color="#0095F6" />
+      <Feather name={icon as any} size={16} color="#0095F6" />
       <Text style={styles.perkText}>{text}</Text>
     </View>
   );
@@ -97,7 +130,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 28,
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
     alignItems: "center",
   },
   closeBtn: {
@@ -107,38 +140,98 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   emoji: {
-    fontSize: 56,
-    marginBottom: 12,
+    fontSize: 48,
+    marginBottom: 10,
   },
   title: {
     color: "#FFFFFF",
     fontFamily: "Inter_700Bold",
-    fontSize: 22,
+    fontSize: 21,
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   subtitle: {
     color: "#8E8E8E",
     fontFamily: "Inter_400Regular",
-    fontSize: 14,
+    fontSize: 13,
     textAlign: "center",
-    lineHeight: 21,
-    marginBottom: 24,
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  planRow: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+    marginBottom: 20,
+  },
+  planCard: {
+    flex: 1,
+    backgroundColor: "#1C1C1E",
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#2C2C2E",
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    position: "relative",
+  },
+  planCardSelected: {
+    borderColor: "#0095F6",
+    backgroundColor: "#0A1929",
+  },
+  checkDot: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#0095F6",
+  },
+  bestValueBadge: {
+    backgroundColor: "#0095F6",
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginBottom: 6,
+  },
+  bestValueText: {
+    color: "#FFFFFF",
+    fontFamily: "Inter_700Bold",
+    fontSize: 9,
+    letterSpacing: 0.5,
+  },
+  planLabel: {
+    color: "#8E8E8E",
+    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  planPrice: {
+    color: "#FFFFFF",
+    fontFamily: "Inter_700Bold",
+    fontSize: 22,
+  },
+  planSub: {
+    color: "#8E8E8E",
+    fontFamily: "Inter_400Regular",
+    fontSize: 11,
+    marginTop: 2,
   },
   perks: {
     width: "100%",
-    gap: 14,
-    marginBottom: 28,
+    gap: 10,
+    marginBottom: 22,
   },
   perkRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
   perkText: {
-    color: "#FFFFFF",
+    color: "#CCCCCC",
     fontFamily: "Inter_400Regular",
-    fontSize: 15,
+    fontSize: 14,
   },
   purchaseBtn: {
     backgroundColor: "#0095F6",
@@ -146,7 +239,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     width: "100%",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 12,
   },
   purchaseBtnDisabled: {
     opacity: 0.6,
@@ -154,7 +247,7 @@ const styles = StyleSheet.create({
   purchaseBtnText: {
     color: "#FFFFFF",
     fontFamily: "Inter_700Bold",
-    fontSize: 16,
+    fontSize: 15,
     letterSpacing: 0.2,
   },
   laterBtn: {
