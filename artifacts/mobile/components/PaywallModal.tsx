@@ -5,10 +5,11 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import { useSubscription } from "@/lib/revenuecat";
 
 interface PaywallModalProps {
   visible: boolean;
@@ -18,6 +19,11 @@ interface PaywallModalProps {
 
 export function PaywallModal({ visible, onClose, onPurchase }: PaywallModalProps) {
   const insets = useSafeAreaInsets();
+  const { offerings, isPurchasing } = useSubscription();
+
+  const currentOffering = offerings?.current;
+  const packageToPurchase = currentOffering?.availablePackages[0];
+  const priceString = packageToPurchase?.product.priceString ?? "$4.99";
 
   return (
     <Modal
@@ -46,8 +52,19 @@ export function PaywallModal({ visible, onClose, onPurchase }: PaywallModalProps
             <PerkRow icon="zap"           text="One-time payment, no subscription" />
           </View>
 
-          <TouchableOpacity style={styles.purchaseBtn} onPress={onPurchase} activeOpacity={0.85}>
-            <Text style={styles.purchaseBtnText}>Get Lifetime Access — $4.99</Text>
+          <TouchableOpacity
+            style={[styles.purchaseBtn, isPurchasing && styles.purchaseBtnDisabled]}
+            onPress={onPurchase}
+            activeOpacity={0.85}
+            disabled={isPurchasing}
+          >
+            {isPurchasing ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.purchaseBtnText}>
+                Get Lifetime Access — {priceString}
+              </Text>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onClose} style={styles.laterBtn}>
@@ -130,6 +147,9 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     marginBottom: 14,
+  },
+  purchaseBtnDisabled: {
+    opacity: 0.6,
   },
   purchaseBtnText: {
     color: "#FFFFFF",

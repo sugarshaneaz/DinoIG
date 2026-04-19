@@ -583,6 +583,10 @@ importers:
         version: 0.31.9
 
   scripts:
+    dependencies:
+      '@replit/revenuecat-sdk':
+        specifier: ^4.0.0
+        version: 4.2.0(typescript@5.9.3)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

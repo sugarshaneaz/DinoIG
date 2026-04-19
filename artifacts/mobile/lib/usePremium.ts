@@ -1,24 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCallback } from "react";
+import { useSubscription } from "@/lib/revenuecat";
 
-const PREMIUM_KEY = "dino_premium_unlocked";
 export const FREE_DINO_COUNT = 6;
 
 export function usePremium() {
-  const [isPremium, setIsPremium] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    AsyncStorage.getItem(PREMIUM_KEY).then((val) => {
-      setIsPremium(val === "true");
-      setLoading(false);
-    });
-  }, []);
+  const { isSubscribed, isLoading, offerings, purchase } = useSubscription();
 
   const unlock = useCallback(async () => {
-    await AsyncStorage.setItem(PREMIUM_KEY, "true");
-    setIsPremium(true);
-  }, []);
+    const currentOffering = offerings?.current;
+    const packageToPurchase = currentOffering?.availablePackages[0];
+    if (!packageToPurchase) throw new Error("No package available to purchase");
+    await purchase(packageToPurchase);
+  }, [offerings, purchase]);
 
-  return { isPremium, loading, unlock };
+  return { isPremium: isSubscribed, loading: isLoading, unlock };
 }
