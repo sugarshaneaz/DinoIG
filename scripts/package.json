@@ -6,6 +6,7 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed-dinosaurs": "tsx ./src/seedDinosaurs.ts",
+    "restore-dinosaurs": "tsx ./src/restoreDinosaurs.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
