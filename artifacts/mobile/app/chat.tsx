@@ -13,7 +13,7 @@ import {
 import { useLocalSearchParams, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useGetDinosaur } from "@workspace/api-client-react";
+import { useGetDinosaur, getGetDinosaurQueryKey } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
 
 const MESSAGE_LIMIT = 10;
@@ -107,7 +107,10 @@ export default function ChatScreen() {
   const numericId = parseInt(id ?? "0", 10);
 
   const { data: dino } = useGetDinosaur(numericId, {
-    query: { enabled: !!numericId },
+    query: {
+      enabled: !!numericId,
+      queryKey: getGetDinosaurQueryKey(numericId),
+    },
   });
 
   const [messages, setMessages] = useState<Message[]>([]);

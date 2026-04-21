@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Platform } from "react-native";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useGetDinosaur } from "@workspace/api-client-react";
+import { useGetDinosaur, getGetDinosaurQueryKey } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
 import { DinoDetail } from "@/components/DinoDetail";
 import type { Dinosaur } from "@workspace/api-client-react";
@@ -15,7 +15,10 @@ export default function DetailScreen() {
   const [imageOverride, setImageOverride] = useState<Dinosaur | null>(null);
 
   const { data: dinosaur, isLoading, error } = useGetDinosaur(numericId, {
-    query: { enabled: !!numericId },
+    query: {
+      enabled: !!numericId,
+      queryKey: getGetDinosaurQueryKey(numericId),
+    },
   });
 
   const displayDinosaur = imageOverride ?? dinosaur;

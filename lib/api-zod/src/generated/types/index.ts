@@ -11,3 +11,4 @@ export * from "./dinosaur";
 export * from "./errorResponse";
 export * from "./getDinosaursParams";
 export * from "./healthStatus";
+export * from "./updateDinosaur";

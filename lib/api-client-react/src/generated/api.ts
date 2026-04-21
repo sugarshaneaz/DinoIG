@@ -22,6 +22,7 @@ import type {
   ErrorResponse,
   GetDinosaursParams,
   HealthStatus,
+  UpdateDinosaur,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -376,7 +377,8 @@ export function useGetDinosaur<
 }
 
 /**
- * @summary Update a dinosaur
+ * All fields are optional; only provided fields are updated.
+ * @summary Partially update a dinosaur
  */
 export const getUpdateDinosaurUrl = (id: number) => {
   return `/api/dinosaurs/${id}`;
@@ -384,14 +386,14 @@ export const getUpdateDinosaurUrl = (id: number) => {
 
 export const updateDinosaur = async (
   id: number,
-  createDinosaur: CreateDinosaur,
+  updateDinosaur: UpdateDinosaur,
   options?: RequestInit,
 ): Promise<Dinosaur> => {
   return customFetch<Dinosaur>(getUpdateDinosaurUrl(id), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(createDinosaur),
+    body: JSON.stringify(updateDinosaur),
   });
 };
 
@@ -402,14 +404,14 @@ export const getUpdateDinosaurMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateDinosaur>>,
     TError,
-    { id: number; data: BodyType<CreateDinosaur> },
+    { id: number; data: BodyType<UpdateDinosaur> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateDinosaur>>,
   TError,
-  { id: number; data: BodyType<CreateDinosaur> },
+  { id: number; data: BodyType<UpdateDinosaur> },
   TContext
 > => {
   const mutationKey = ["updateDinosaur"];
@@ -423,7 +425,7 @@ export const getUpdateDinosaurMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateDinosaur>>,
-    { id: number; data: BodyType<CreateDinosaur> }
+    { id: number; data: BodyType<UpdateDinosaur> }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -436,11 +438,11 @@ export const getUpdateDinosaurMutationOptions = <
 export type UpdateDinosaurMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateDinosaur>>
 >;
-export type UpdateDinosaurMutationBody = BodyType<CreateDinosaur>;
+export type UpdateDinosaurMutationBody = BodyType<UpdateDinosaur>;
 export type UpdateDinosaurMutationError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Update a dinosaur
+ * @summary Partially update a dinosaur
  */
 export const useUpdateDinosaur = <
   TError = ErrorType<ErrorResponse>,
@@ -449,14 +451,14 @@ export const useUpdateDinosaur = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateDinosaur>>,
     TError,
-    { id: number; data: BodyType<CreateDinosaur> },
+    { id: number; data: BodyType<UpdateDinosaur> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateDinosaur>>,
   TError,
-  { id: number; data: BodyType<CreateDinosaur> },
+  { id: number; data: BodyType<UpdateDinosaur> },
   TContext
 > => {
   return useMutation(getUpdateDinosaurMutationOptions(options));
@@ -547,6 +549,11 @@ export const useDeleteDinosaur = <
 };
 
 /**
+ * Idempotent per device. The server deduplicates likes using the
+`X-Device-Id` header (preferred) or a hash of IP + user agent as a
+fallback. Repeated calls from the same device return the current count
+without incrementing it.
+
  * @summary Like a dinosaur post
  */
 export const getLikeDinosaurUrl = (id: number) => {
