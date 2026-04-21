@@ -13,6 +13,7 @@ import {
 } from "../middlewares/rateLimit";
 import { getDeviceKey } from "../middlewares/deviceKey";
 import { parseIdParam } from "../lib/parseParam";
+import { cacheRemoteImage } from "../lib/imageCache";
 
 const router: IRouter = Router();
 
@@ -34,6 +35,7 @@ router.get("/dinosaurs", async (req, res) => {
     } else {
       dinosaurs = await db.select().from(dinosaursTable).orderBy(dinosaursTable.id);
     }
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
     res.json(dinosaurs);
   } catch (err) {
     req.log.error({ err }, "Failed to fetch dinosaurs");
@@ -204,12 +206,17 @@ router.post(
         return;
       }
 
-      const imageUrl = await searchDinosaurImage(dinosaur.name);
+      const remoteImageUrl = await searchDinosaurImage(dinosaur.name);
 
-      if (!imageUrl) {
+      if (!remoteImageUrl) {
         res.status(404).json({ error: "No image found for this dinosaur" });
         return;
       }
+
+      // Persist the image locally so we're not hotlinking Wikipedia forever.
+      // Fall back to the remote URL if the cache write fails for any reason.
+      const cachedUrl = await cacheRemoteImage(id, remoteImageUrl);
+      const imageUrl = cachedUrl ?? remoteImageUrl;
 
       const [updated] = await db
         .update(dinosaursTable)

@@ -13,13 +13,22 @@ import { Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { setBaseUrl } from "@workspace/api-client-react";
+import {
+  setBaseUrl,
+  setDefaultHeadersGetter,
+} from "@workspace/api-client-react";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { initializeRevenueCat, SubscriptionProvider } from "@/lib/revenuecat";
+import { getDeviceId } from "@/lib/deviceId";
 
 // Set the base URL for the API client so Expo can reach the server
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
+
+// Attach a stable per-install device id so the server can dedupe likes
+setDefaultHeadersGetter(async () => ({
+  "X-Device-Id": await getDeviceId(),
+}));
 
 // Initialize RevenueCat at app startup
 try {

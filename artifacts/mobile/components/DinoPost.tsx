@@ -461,7 +461,9 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 20,
     fontFamily: "Inter_700Bold",
-    textShadow: "0px 1px 4px rgba(0,0,0,0.8)",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   imagePlaceholder: {
     width: SCREEN_WIDTH,

@@ -1,4 +1,8 @@
-import express, { type Express } from "express";
+import express, {
+  type Express,
+  type ErrorRequestHandler,
+  type RequestHandler,
+} from "express";
 import cors, { type CorsOptions } from "cors";
 import pinoHttp from "pino-http";
 import path from "path";
@@ -63,5 +67,18 @@ app.use(
 );
 
 app.use("/api", globalLimiter, router);
+
+const notFoundHandler: RequestHandler = (_req, res) => {
+  res.status(404).json({ error: "Not found" });
+};
+
+const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
+  req.log?.error({ err }, "Unhandled error");
+  if (res.headersSent) return;
+  res.status(500).json({ error: "Internal server error" });
+};
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

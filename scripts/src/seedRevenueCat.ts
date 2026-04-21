@@ -154,7 +154,7 @@ async function seedRevenueCat() {
       display_name: displayName,
     };
     if (isTestStore) {
-      body.subscription = { duration };
+      body.subscription = { duration: duration as "P1M" | "P1Y" };
       body.title = title;
     }
     const { data: created, error } = await createProduct({
@@ -301,7 +301,7 @@ async function seedRevenueCat() {
   const monthlyPkg  = await ensurePackage("$rc_monthly",  "Monthly Subscription");
   const lifetimePkg = await ensurePackage("$rc_lifetime", "Lifetime Access");
 
-  const attachPkg = async (pkg: Package, products: { product_id: string; eligibility_criteria: string }[], label: string) => {
+  const attachPkg = async (pkg: Package, products: { product_id: string; eligibility_criteria: "all" | "google_sdk_lt_6" | "google_sdk_ge_6" }[], label: string) => {
     const { error } = await attachProductsToPackage({
       client,
       path: { project_id: project.id, package_id: pkg.id },

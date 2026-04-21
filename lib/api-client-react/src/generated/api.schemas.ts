@@ -29,6 +29,17 @@ export interface CreateDinosaur {
   imageUrl?: string | null;
 }
 
+/**
+ * Partial update. Provide only the fields you want to change.
+ */
+export interface UpdateDinosaur {
+  name?: string;
+  description?: string;
+  period?: string;
+  diet?: string;
+  imageUrl?: string | null;
+}
+
 export interface ErrorResponse {
   error: string;
 }
