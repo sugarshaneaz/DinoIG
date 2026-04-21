@@ -1,11 +1,24 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
+import { z } from "zod/v4";
 import { db, dinosaursTable } from "@workspace/db";
+import { chatLimiter } from "../middlewares/rateLimit";
+import { parseIdParam } from "../lib/parseParam";
 
 const router: IRouter = Router();
 
 const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
 const MINIMAX_BASE_URL = "https://api.minimaxi.chat/v1";
+
+const chatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(4000),
+});
+
+const chatRequestSchema = z.object({
+  message: z.string().min(1).max(2000),
+  history: z.array(chatMessageSchema).max(20).default([]),
+});
 
 function buildSystemPrompt(dino: typeof dinosaursTable.$inferSelect): string {
   const dietPersonality: Record<string, string> = {
@@ -39,23 +52,20 @@ RULES:
 - NEVER break character or mention that you are an AI.`;
 }
 
-router.post("/dinosaurs/:id/chat", async (req, res) => {
+router.post("/dinosaurs/:id/chat", chatLimiter, async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
       res.status(400).json({ error: "Invalid ID" });
       return;
     }
 
-    const { message, history = [] } = req.body as {
-      message: string;
-      history: { role: "user" | "assistant"; content: string }[];
-    };
-
-    if (!message || typeof message !== "string") {
-      res.status(400).json({ error: "message is required" });
+    const parsed = chatRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid request body" });
       return;
     }
+    const { message, history } = parsed.data;
 
     if (!MINIMAX_API_KEY) {
       res.status(500).json({ error: "MiniMax API key not configured" });

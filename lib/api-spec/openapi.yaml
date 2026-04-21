@@ -48,6 +48,8 @@ paths:
       operationId: createDinosaur
       tags: [dinosaurs]
       summary: Create a dinosaur
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -88,7 +90,10 @@ paths:
     put:
       operationId: updateDinosaur
       tags: [dinosaurs]
-      summary: Update a dinosaur
+      summary: Partially update a dinosaur
+      description: All fields are optional; only provided fields are updated.
+      security:
+        - ApiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -100,7 +105,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateDinosaur"
+              $ref: "#/components/schemas/UpdateDinosaur"
       responses:
         "200":
           description: Updated dinosaur
@@ -108,6 +113,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Dinosaur"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Not found
           content:
@@ -118,6 +129,8 @@ paths:
       operationId: deleteDinosaur
       tags: [dinosaurs]
       summary: Delete a dinosaur
+      security:
+        - ApiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -127,6 +140,12 @@ paths:
       responses:
         "204":
           description: Deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Not found
           content:
@@ -138,15 +157,27 @@ paths:
       operationId: likeDinosaur
       tags: [dinosaurs]
       summary: Like a dinosaur post
+      description: |
+        Idempotent per device. The server deduplicates likes using the
+        `X-Device-Id` header (preferred) or a hash of IP + user agent as a
+        fallback. Repeated calls from the same device return the current count
+        without incrementing it.
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: integer
+        - name: X-Device-Id
+          in: header
+          required: false
+          description: Stable per-device identifier for like deduplication.
+          schema:
+            type: string
+            maxLength: 128
       responses:
         "200":
-          description: Updated dinosaur with new like count
+          description: Current dinosaur (possibly with incremented like count)
           content:
             application/json:
               schema:
@@ -157,11 +188,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /dinosaurs/{id}/fetch-image:
     post:
       operationId: fetchDinosaurImage
       tags: [dinosaurs]
       summary: Search for and save a dinosaur image from Wikipedia
+      security:
+        - ApiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -175,6 +214,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Dinosaur"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Not found
           content:
@@ -182,6 +227,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
   schemas:
     HealthStatus:
       type: object
@@ -242,6 +292,21 @@ components:
         - description
         - period
         - diet
+    UpdateDinosaur:
+      type: object
+      description: Partial update. Provide only the fields you want to change.
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        period:
+          type: string
+        diet:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
     ErrorResponse:
       type: object
       properties:
