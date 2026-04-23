@@ -25,10 +25,16 @@ import { getDeviceId } from "@/lib/deviceId";
 // Set the base URL for the API client so Expo can reach the server
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
-// Attach a stable per-install device id so the server can dedupe likes
-setDefaultHeadersGetter(async () => ({
-  "X-Device-Id": await getDeviceId(),
-}));
+// Attach a stable per-install device id so the server can dedupe likes,
+// plus the shared API key so mutation routes let us through.
+setDefaultHeadersGetter(async () => {
+  const headers: Record<string, string> = {
+    "X-Device-Id": await getDeviceId(),
+  };
+  const apiKey = process.env.EXPO_PUBLIC_API_KEY;
+  if (apiKey) headers["x-api-key"] = apiKey;
+  return headers;
+});
 
 // Initialize RevenueCat at app startup
 try {
