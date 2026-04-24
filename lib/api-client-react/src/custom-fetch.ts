@@ -7,6 +7,9 @@ export type ErrorType<T = unknown> = ApiError<T>;
 export type BodyType<T> = T;
 
 export type AuthTokenGetter = () => Promise<string | null> | string | null;
+export type DefaultHeadersGetter = () =>
+  | Promise<Record<string, string>>
+  | Record<string, string>;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
@@ -17,6 +20,7 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _defaultHeadersGetter: DefaultHeadersGetter | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -42,6 +46,16 @@ export function setBaseUrl(url: string | null): void {
  */
 export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
   _authTokenGetter = getter;
+}
+
+/**
+ * Register a getter that supplies default headers attached to every request.
+ * Existing headers on the request take precedence. Pass `null` to clear.
+ */
+export function setDefaultHeadersGetter(
+  getter: DefaultHeadersGetter | null,
+): void {
+  _defaultHeadersGetter = getter;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -335,7 +349,12 @@ export async function customFetch<T = unknown>(
     throw new TypeError(`customFetch: ${method} requests cannot have a body.`);
   }
 
-  const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+  const defaultHeaders = _defaultHeadersGetter ? await _defaultHeadersGetter() : undefined;
+  const headers = mergeHeaders(
+    defaultHeaders,
+    isRequest(input) ? input.headers : undefined,
+    headersInit,
+  );
 
   if (
     typeof init.body === "string" &&

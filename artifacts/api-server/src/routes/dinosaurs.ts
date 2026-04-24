@@ -1,8 +1,26 @@
 import { Router, type IRouter } from "express";
 import { eq, ilike, sql } from "drizzle-orm";
-import { db, dinosaursTable, insertDinosaurSchema } from "@workspace/db";
+import {
+  db,
+  dinosaurLikesTable,
+  dinosaursTable,
+  insertDinosaurSchema,
+} from "@workspace/db";
+import { requireApiKey } from "../middlewares/auth";
+import {
+  fetchImageLimiter,
+  likeLimiter,
+} from "../middlewares/rateLimit";
+import { getDeviceKey } from "../middlewares/deviceKey";
+import { parseIdParam } from "../lib/parseParam";
+import { cacheRemoteImage } from "../lib/imageCache";
 
 const router: IRouter = Router();
+
+const updateDinosaurSchema = insertDinosaurSchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  { message: "At least one field must be provided" },
+);
 
 router.get("/dinosaurs", async (req, res) => {
   try {
@@ -17,6 +35,7 @@ router.get("/dinosaurs", async (req, res) => {
     } else {
       dinosaurs = await db.select().from(dinosaursTable).orderBy(dinosaursTable.id);
     }
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
     res.json(dinosaurs);
   } catch (err) {
     req.log.error({ err }, "Failed to fetch dinosaurs");
@@ -24,7 +43,7 @@ router.get("/dinosaurs", async (req, res) => {
   }
 });
 
-router.post("/dinosaurs", async (req, res) => {
+router.post("/dinosaurs", requireApiKey, async (req, res) => {
   try {
     const parsed = insertDinosaurSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -44,8 +63,8 @@ router.post("/dinosaurs", async (req, res) => {
 
 router.get("/dinosaurs/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
       res.status(400).json({ error: "Invalid ID" });
       return;
     }
@@ -64,14 +83,14 @@ router.get("/dinosaurs/:id", async (req, res) => {
   }
 });
 
-router.put("/dinosaurs/:id", async (req, res) => {
+router.put("/dinosaurs/:id", requireApiKey, async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
       res.status(400).json({ error: "Invalid ID" });
       return;
     }
-    const parsed = insertDinosaurSchema.safeParse(req.body);
+    const parsed = updateDinosaurSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: "Invalid request body" });
       return;
@@ -92,10 +111,10 @@ router.put("/dinosaurs/:id", async (req, res) => {
   }
 });
 
-router.delete("/dinosaurs/:id", async (req, res) => {
+router.delete("/dinosaurs/:id", requireApiKey, async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
       res.status(400).json({ error: "Invalid ID" });
       return;
     }
@@ -114,69 +133,123 @@ router.delete("/dinosaurs/:id", async (req, res) => {
   }
 });
 
-router.post("/dinosaurs/:id/like", async (req, res) => {
+router.post("/dinosaurs/:id/like", likeLimiter, async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    const id = parseIdParam(req.params.id);
+    if (id === null) {
       res.status(400).json({ error: "Invalid ID" });
       return;
     }
-    const [updated] = await db
-      .update(dinosaursTable)
-      .set({
-        likesCount: sql`${dinosaursTable.likesCount} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(dinosaursTable.id, id))
-      .returning();
-    if (!updated) {
+
+    const deviceKey = getDeviceKey(req);
+
+    const result = await db.transaction(async (tx) => {
+      const [existing] = await tx
+        .select()
+        .from(dinosaursTable)
+        .where(eq(dinosaursTable.id, id));
+      if (!existing) return null;
+
+      const inserted = await tx
+        .insert(dinosaurLikesTable)
+        .values({ dinosaurId: id, deviceKey })
+        .onConflictDoNothing({
+          target: [dinosaurLikesTable.dinosaurId, dinosaurLikesTable.deviceKey],
+        })
+        .returning({ id: dinosaurLikesTable.id });
+
+      if (inserted.length === 0) {
+        return existing;
+      }
+
+      const [updated] = await tx
+        .update(dinosaursTable)
+        .set({
+          likesCount: sql`${dinosaursTable.likesCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(dinosaursTable.id, id))
+        .returning();
+      return updated ?? existing;
+    });
+
+    if (!result) {
       res.status(404).json({ error: "Dinosaur not found" });
       return;
     }
-    res.json(updated);
+    res.json(result);
   } catch (err) {
     req.log.error({ err }, "Failed to like dinosaur");
     res.status(500).json({ error: "Failed to like dinosaur" });
   }
 });
 
-router.post("/dinosaurs/:id/fetch-image", async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-      res.status(400).json({ error: "Invalid ID" });
-      return;
+router.post(
+  "/dinosaurs/:id/fetch-image",
+  requireApiKey,
+  fetchImageLimiter,
+  async (req, res) => {
+    try {
+      const id = parseIdParam(req.params.id);
+      if (id === null) {
+        res.status(400).json({ error: "Invalid ID" });
+        return;
+      }
+
+      const [dinosaur] = await db
+        .select()
+        .from(dinosaursTable)
+        .where(eq(dinosaursTable.id, id));
+
+      if (!dinosaur) {
+        res.status(404).json({ error: "Dinosaur not found" });
+        return;
+      }
+
+      const remoteImageUrl = await searchDinosaurImage(dinosaur.name);
+
+      if (!remoteImageUrl) {
+        res.status(404).json({ error: "No image found for this dinosaur" });
+        return;
+      }
+
+      // Persist the image locally so we're not hotlinking Wikipedia forever.
+      // Fall back to the remote URL if the cache write fails for any reason.
+      const cachedUrl = await cacheRemoteImage(id, remoteImageUrl);
+      const imageUrl = cachedUrl ?? remoteImageUrl;
+
+      const [updated] = await db
+        .update(dinosaursTable)
+        .set({ imageUrl, updatedAt: new Date() })
+        .where(eq(dinosaursTable.id, id))
+        .returning();
+
+      res.json(updated);
+    } catch (err) {
+      req.log.error({ err }, "Failed to fetch dinosaur image");
+      res.status(500).json({ error: "Failed to fetch dinosaur image" });
     }
+  },
+);
 
-    const [dinosaur] = await db
-      .select()
-      .from(dinosaursTable)
-      .where(eq(dinosaursTable.id, id));
+type WikiPage = {
+  pageid?: number;
+  missing?: string | boolean;
+  thumbnail?: { source?: string };
+  pageimage?: string;
+};
 
-    if (!dinosaur) {
-      res.status(404).json({ error: "Dinosaur not found" });
-      return;
-    }
-
-    const imageUrl = await searchDinosaurImage(dinosaur.name);
-
-    if (!imageUrl) {
-      res.status(404).json({ error: "No image found for this dinosaur" });
-      return;
-    }
-
-    const [updated] = await db
-      .update(dinosaursTable)
-      .set({ imageUrl, updatedAt: new Date() })
-      .where(eq(dinosaursTable.id, id))
-      .returning();
-
-    res.json(updated);
-  } catch (err) {
-    req.log.error({ err }, "Failed to fetch dinosaur image");
-    res.status(500).json({ error: "Failed to fetch dinosaur image" });
+function firstThumbnailFromPages(
+  pages: Record<string, WikiPage> | undefined,
+): string | null {
+  if (!pages) return null;
+  for (const [pageId, page] of Object.entries(pages)) {
+    // Wikipedia returns pageid "-1" (or a `missing` flag) when a title doesn't exist.
+    if (pageId === "-1" || page.missing !== undefined) continue;
+    if (page.thumbnail?.source) return page.thumbnail.source;
   }
-});
+  return null;
+}
 
 async function searchDinosaurImage(name: string): Promise<string | null> {
   const encoded = encodeURIComponent(name);
@@ -193,22 +266,11 @@ async function searchDinosaurImage(name: string): Promise<string | null> {
   if (!response.ok) return null;
 
   const data = (await response.json()) as {
-    query?: {
-      pages?: Record<
-        string,
-        { thumbnail?: { source?: string }; pageimage?: string }
-      >;
-    };
+    query?: { pages?: Record<string, WikiPage> };
   };
 
-  const pages = data?.query?.pages;
-  if (!pages) return null;
-
-  for (const page of Object.values(pages)) {
-    if (page.thumbnail?.source) {
-      return page.thumbnail.source;
-    }
-  }
+  const direct = firstThumbnailFromPages(data?.query?.pages);
+  if (direct) return direct;
 
   const commonsUrl =
     `https://en.wikipedia.org/w/api.php?action=query` +
@@ -245,21 +307,10 @@ async function searchDinosaurImage(name: string): Promise<string | null> {
   if (!detailResponse.ok) return null;
 
   const detailData = (await detailResponse.json()) as {
-    query?: {
-      pages?: Record<string, { thumbnail?: { source?: string } }>;
-    };
+    query?: { pages?: Record<string, WikiPage> };
   };
 
-  const detailPages = detailData?.query?.pages;
-  if (!detailPages) return null;
-
-  for (const page of Object.values(detailPages)) {
-    if (page.thumbnail?.source) {
-      return page.thumbnail.source;
-    }
-  }
-
-  return null;
+  return firstThumbnailFromPages(detailData?.query?.pages);
 }
 
 export default router;

@@ -5,10 +5,14 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "seed-dinosaurs": "tsx ./src/seedDinosaurs.ts",
+    "restore-dinosaurs": "tsx ./src/restoreDinosaurs.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@replit/revenuecat-sdk": "^4.0.0"
+    "@replit/revenuecat-sdk": "^4.0.0",
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

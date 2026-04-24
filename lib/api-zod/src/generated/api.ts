@@ -65,19 +65,22 @@ export const GetDinosaurResponse = zod.object({
 });
 
 /**
- * @summary Update a dinosaur
+ * All fields are optional; only provided fields are updated.
+ * @summary Partially update a dinosaur
  */
 export const UpdateDinosaurParams = zod.object({
   id: zod.coerce.number(),
 });
 
-export const UpdateDinosaurBody = zod.object({
-  name: zod.string(),
-  description: zod.string(),
-  period: zod.string(),
-  diet: zod.string(),
-  imageUrl: zod.string().nullish(),
-});
+export const UpdateDinosaurBody = zod
+  .object({
+    name: zod.string().optional(),
+    description: zod.string().optional(),
+    period: zod.string().optional(),
+    diet: zod.string().optional(),
+    imageUrl: zod.string().nullish(),
+  })
+  .describe("Partial update. Provide only the fields you want to change.");
 
 export const UpdateDinosaurResponse = zod.object({
   id: zod.number(),
@@ -99,10 +102,25 @@ export const DeleteDinosaurParams = zod.object({
 });
 
 /**
+ * Idempotent per device. The server deduplicates likes using the
+`X-Device-Id` header (preferred) or a hash of IP + user agent as a
+fallback. Repeated calls from the same device return the current count
+without incrementing it.
+
  * @summary Like a dinosaur post
  */
 export const LikeDinosaurParams = zod.object({
   id: zod.coerce.number(),
+});
+
+export const likeDinosaurHeaderXDeviceIdMax = 128;
+
+export const LikeDinosaurHeader = zod.object({
+  "X-Device-Id": zod
+    .string()
+    .max(likeDinosaurHeaderXDeviceIdMax)
+    .optional()
+    .describe("Stable per-device identifier for like deduplication."),
 });
 
 export const LikeDinosaurResponse = zod.object({
