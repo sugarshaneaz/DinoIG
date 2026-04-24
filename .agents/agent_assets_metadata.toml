@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "o8uxWaKPubBVXdigepGGN"
@@ -54,3 +53,9 @@ id = "P-Q5lmx9VCKuX_IdkikKz"
 uri = "file://artifacts/api-server/public/images/pterodactyl_fossil.png"
 type = "image"
 title = "pterodactyl fossil specimen"
+
+[[outputs]]
+id = "gYet_QmPbGbN4_1hxRKPn"
+uri = "file://artifacts/mobile/assets/images/icon.png"
+type = "image"
+title = "Dino IG App Icon"
