@@ -17,7 +17,7 @@ import { router } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useLikeDinosaur } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
-import { resolveImageUrl } from "@/lib/resolveImageUrl";
+import { resolveImageSource } from "@/lib/resolveImageUrl";
 import { getCommentsForDino } from "@/lib/dinoComments";
 import { getRealisticImageUrl } from "@/lib/realisticImages";
 
@@ -43,15 +43,15 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
   const scrollRef = useRef<ScrollView>(null);
 
   const comments = getCommentsForDino(dinosaur.id, 3);
-  const fossilUri = resolveImageUrl(dinosaur.imageUrl);
-  const realisticUri = resolveImageUrl(getRealisticImageUrl(dinosaur.name));
-  const slides = realisticUri
+  const fossilSource = resolveImageSource(dinosaur.imageUrl);
+  const realisticSource = resolveImageSource(getRealisticImageUrl(dinosaur.name));
+  const slides = realisticSource
     ? [
-        { uri: realisticUri, label: "Life restoration" },
-        { uri: fossilUri, label: "Fossil" },
+        { source: realisticSource, label: "Life restoration" },
+        { source: fossilSource, label: "Fossil" },
       ]
-    : fossilUri
-    ? [{ uri: fossilUri, label: null }]
+    : fossilSource
+    ? [{ source: fossilSource, label: null }]
     : [];
 
   const { mutate: likeDino } = useLikeDinosaur({
@@ -166,7 +166,7 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
             ) : slides.length === 1 ? (
               <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.slideTouch}>
                 <Image
-                  source={{ uri: slides[0].uri ?? undefined }}
+                  source={slides[0].source ?? undefined}
                   style={styles.image}
                   resizeMode="contain"
                 />
@@ -191,7 +191,7 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
                       style={styles.slideTouch}
                     >
                       <Image
-                        source={{ uri: slide.uri ?? undefined }}
+                        source={slide.source ?? undefined}
                         style={styles.image}
                         resizeMode="contain"
                       />

@@ -13,7 +13,7 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { fetchDinosaurImage } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
-import { resolveImageUrl } from "@/lib/resolveImageUrl";
+import { resolveImageSource } from "@/lib/resolveImageUrl";
 
 interface DinoCardProps {
   dinosaur: Dinosaur;
@@ -54,9 +54,9 @@ export function DinoCard({ dinosaur, onPress, onImageFetched }: DinoCardProps) {
       activeOpacity={0.8}
     >
       <View style={styles.imageContainer}>
-        {resolveImageUrl(dinosaur.imageUrl) ? (
+        {resolveImageSource(dinosaur.imageUrl) ? (
           <Image
-            source={{ uri: resolveImageUrl(dinosaur.imageUrl)! }}
+            source={resolveImageSource(dinosaur.imageUrl)!}
             style={[styles.image, { borderRadius: 12 }]}
             resizeMode="cover"
           />
