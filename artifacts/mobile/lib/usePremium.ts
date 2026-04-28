@@ -15,5 +15,11 @@ export function usePremium() {
     await purchase(packageToPurchase);
   }, [offerings, purchase]);
 
-  return { isPremium: isSubscribed, loading: isLoading, unlock };
+  // Treat user as premium when there's nothing to sell (RevenueCat not yet
+  // configured or no products in the dashboard). The paywall reactivates
+  // automatically once real offerings load.
+  const hasOfferings = !!offerings?.current?.availablePackages?.length;
+  const isPremium = isSubscribed || (!isLoading && !hasOfferings);
+
+  return { isPremium, loading: isLoading, unlock };
 }
