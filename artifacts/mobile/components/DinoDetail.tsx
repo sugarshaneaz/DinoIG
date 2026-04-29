@@ -15,7 +15,7 @@ import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { fetchDinosaurImage } from "@workspace/api-client-react";
 import type { Dinosaur } from "@workspace/api-client-react";
-import { resolveImageUrl } from "@/lib/resolveImageUrl";
+import { resolveImageSource } from "@/lib/resolveImageUrl";
 
 interface DinoDetailProps {
   dinosaur: Dinosaur;
@@ -49,10 +49,10 @@ export function DinoDetail({ dinosaur, onImageFetched }: DinoDetailProps) {
         paddingBottom: insets.bottom + (Platform.OS === "web" ? 34 : 20),
       }}
     >
-      {resolveImageUrl(dinosaur.imageUrl) ? (
+      {resolveImageSource(dinosaur.imageUrl) ? (
         <View>
           <Image
-            source={{ uri: resolveImageUrl(dinosaur.imageUrl)! }}
+            source={resolveImageSource(dinosaur.imageUrl)!}
             style={styles.heroImage}
             resizeMode="contain"
           />

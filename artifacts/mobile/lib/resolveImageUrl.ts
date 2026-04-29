@@ -22,3 +22,27 @@ export function resolveImageUrl(url: string | null | undefined): string | null {
   // Fallback: return the relative path (works on web only)
   return url;
 }
+
+// Wikimedia's User-Agent policy blocks default mobile HTTP client UAs (okhttp,
+// CFNetwork). Requests need a descriptive UA with contact info or they get
+// dropped. https://meta.wikimedia.org/wiki/User-Agent_policy
+const WIKIMEDIA_HEADERS = {
+  "User-Agent": "DinoIG/1.0 (https://github.com/sugarshaneaz/DinoIG)",
+};
+
+/**
+ * Returns an image source object with the right headers for the given URL.
+ * Wikimedia URLs need a descriptive User-Agent or they 403.
+ */
+export function resolveImageSource(
+  url: string | null | undefined,
+): { uri: string; headers?: Record<string, string> } | null {
+  const uri = resolveImageUrl(url);
+  if (!uri) return null;
+
+  if (uri.includes("wikimedia.org") || uri.includes("wikipedia.org")) {
+    return { uri, headers: WIKIMEDIA_HEADERS };
+  }
+
+  return { uri };
+}

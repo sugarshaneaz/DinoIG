@@ -15,7 +15,7 @@ import { useGetDinosaurs } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
 import { SearchBar } from "@/components/SearchBar";
 import { useRouter } from "expo-router";
-import { resolveImageUrl } from "@/lib/resolveImageUrl";
+import { resolveImageSource } from "@/lib/resolveImageUrl";
 import type { Dinosaur } from "@workspace/api-client-react";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -40,7 +40,7 @@ export default function SearchScreen() {
 
   const renderTile = useCallback(
     ({ item, index }: { item: Dinosaur; index: number }) => {
-      const imageUri = resolveImageUrl(item.imageUrl);
+      const imageSource = resolveImageSource(item.imageUrl);
       const isMiddle = index % 3 === 1;
       return (
         <TouchableOpacity
@@ -52,9 +52,9 @@ export default function SearchScreen() {
           onPress={() => handlePress(item)}
           activeOpacity={0.85}
         >
-          {imageUri ? (
+          {imageSource ? (
             <Image
-              source={{ uri: imageUri }}
+              source={imageSource}
               style={styles.tileImage}
               resizeMode="contain"
             />
