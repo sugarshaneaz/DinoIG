@@ -145,7 +145,7 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
           <View style={styles.lockedInner}>
             <Feather name="lock" size={32} color="#FFFFFF" style={{ marginBottom: 12 }} />
             <Text style={styles.lockedTitle}>300+ More Dinos Waiting</Text>
-            <Text style={styles.lockedSub}>$4.99 for lifetime access</Text>
+            <Text style={styles.lockedSub}>From $2.99/mo or $9.99 lifetime</Text>
             <View style={styles.lockedBtn}>
               <Text style={styles.lockedBtnText}>Unlock Now</Text>
             </View>
