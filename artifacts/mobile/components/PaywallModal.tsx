@@ -26,8 +26,8 @@ export function PaywallModal({ visible, onClose, onPurchase }: PaywallModalProps
   const monthlyPkg  = currentOffering?.availablePackages.find((p) => p.packageType === "MONTHLY");
   const lifetimePkg = currentOffering?.availablePackages.find((p) => p.packageType === "LIFETIME");
 
-  const monthlyPrice  = monthlyPkg?.product.priceString  ?? "$4.99";
-  const lifetimePrice = lifetimePkg?.product.priceString ?? "$14.99";
+  const monthlyPrice  = monthlyPkg?.product.priceString  ?? "$2.99";
+  const lifetimePrice = lifetimePkg?.product.priceString ?? "$9.99";
 
   const ctaLabel = selected === "monthly"
     ? `Start Monthly – ${monthlyPrice}/mo`
