@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   TouchableOpacity,
   Dimensions,
@@ -11,6 +10,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
+import { Image } from "expo-image";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -168,7 +168,9 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
                 <Image
                   source={slides[0].source ?? undefined}
                   style={styles.image}
-                  resizeMode="contain"
+                  contentFit="contain"
+                  cachePolicy="memory-disk"
+                  transition={150}
                 />
               </TouchableOpacity>
             ) : (
@@ -193,7 +195,9 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
                       <Image
                         source={slide.source ?? undefined}
                         style={styles.image}
-                        resizeMode="contain"
+                        contentFit="contain"
+                        cachePolicy="memory-disk"
+                        transition={150}
                       />
                       {slide.label && (
                         <View style={styles.slideLabel}>

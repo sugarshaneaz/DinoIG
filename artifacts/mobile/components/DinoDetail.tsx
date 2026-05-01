@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   ScrollView,
   Platform,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { Image } from "expo-image";
 import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -54,7 +54,9 @@ export function DinoDetail({ dinosaur, onImageFetched }: DinoDetailProps) {
           <Image
             source={resolveImageSource(dinosaur.imageUrl)!}
             style={styles.heroImage}
-            resizeMode="contain"
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            transition={150}
           />
           <TouchableOpacity
             style={[
