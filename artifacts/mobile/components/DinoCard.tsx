@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Image,
   StyleSheet,
   TouchableOpacity,
   Platform,
   ActivityIndicator,
 } from "react-native";
+import { Image } from "expo-image";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
@@ -58,7 +58,9 @@ export function DinoCard({ dinosaur, onPress, onImageFetched }: DinoCardProps) {
           <Image
             source={resolveImageSource(dinosaur.imageUrl)!}
             style={[styles.image, { borderRadius: 12 }]}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
           />
         ) : (
           <TouchableOpacity

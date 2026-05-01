@@ -6,10 +6,10 @@ import {
   ActivityIndicator,
   Text,
   TouchableOpacity,
-  Image,
   Dimensions,
   Platform,
 } from "react-native";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGetDinosaurs } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
@@ -56,7 +56,9 @@ export default function SearchScreen() {
             <Image
               source={imageSource}
               style={styles.tileImage}
-              resizeMode="contain"
+              contentFit="contain"
+              cachePolicy="memory-disk"
+              transition={150}
             />
           ) : (
             <View style={[styles.tilePlaceholder, { backgroundColor: colors.accent }]}>
