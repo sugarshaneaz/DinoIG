@@ -50,6 +50,7 @@
     },
     "android": {
       "package": "com.sameheights.dinoig",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#F5E8CE"

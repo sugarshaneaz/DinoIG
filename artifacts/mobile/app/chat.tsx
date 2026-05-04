@@ -238,7 +238,6 @@ export default function ChatScreen() {
         style={styles.container}
         behavior="padding"
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-        enabled={Platform.OS === "ios"}
       >
         <View style={styles.dinoHeader}>
           <View style={styles.dinoHeaderAvatar}>
