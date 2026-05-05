@@ -9,7 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { KeyboardStickyView } from "react-native-keyboard-controller";
 import { useLocalSearchParams, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -234,11 +234,7 @@ export default function ChatScreen() {
           ),
         }}
       />
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior="padding"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
+      <View style={styles.container}>
         <View style={styles.dinoHeader}>
           <View style={styles.dinoHeaderAvatar}>
             <Text style={styles.dinoHeaderEmoji}>{emoji}</Text>
@@ -274,6 +270,7 @@ export default function ChatScreen() {
           </View>
         )}
 
+        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
         {limitReached ? (
           <View style={[styles.limitBanner, { paddingBottom: insets.bottom + 12 }]}>
             <Text style={styles.limitEmoji}>💤</Text>
@@ -313,7 +310,8 @@ export default function ChatScreen() {
             </TouchableOpacity>
           </View>
         )}
-      </KeyboardAvoidingView>
+        </KeyboardStickyView>
+      </View>
     </>
   );
 }
