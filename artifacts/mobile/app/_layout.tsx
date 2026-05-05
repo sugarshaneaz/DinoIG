@@ -9,8 +9,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { KeyboardProvider } from "react-native-keyboard-controller";
+import {
+  AndroidSoftInputModes,
+  KeyboardController,
+  KeyboardProvider,
+} from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   setBaseUrl,
@@ -32,6 +37,16 @@ setDefaultHeadersGetter(async () => ({
 // Initialize RevenueCat at app startup. Returns false (and logs) when keys
 // aren't configured for the current platform — app continues to run without IAP.
 initializeRevenueCat();
+
+// Edge-to-edge mode (Expo SDK 54 default) ignores the AndroidManifest's
+// windowSoftInputMode, so adjustResize has to be requested at runtime
+// from the keyboard-controller native module. Without this, the chat
+// input bar stays hidden under the IME on Android.
+if (Platform.OS === "android") {
+  KeyboardController.setInputMode(
+    AndroidSoftInputModes.SOFT_INPUT_ADJUST_RESIZE,
+  );
+}
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
