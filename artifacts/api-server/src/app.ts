@@ -25,6 +25,8 @@ const corsOptions: CorsOptions = {
     if (!origin) return cb(null, true);
     if (allowedOrigins.includes("*")) return cb(null, true);
     if (allowedOrigins.includes(origin)) return cb(null, true);
+    // Always allow Replit preview/dev domains (expo previews live on a different subdomain)
+    if (origin.endsWith(".replit.dev") || origin.endsWith(".picard.replit.dev")) return cb(null, true);
     // In development, allow everything when no allowlist is configured
     if (!isProd && allowedOrigins.length === 0) return cb(null, true);
     return cb(null, false);

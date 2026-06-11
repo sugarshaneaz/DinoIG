@@ -4,6 +4,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
   Dimensions,
   Platform,
   ScrollView,
@@ -23,6 +25,13 @@ import { getRealisticImageUrl } from "@/lib/realisticImages";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const IMAGE_HEIGHT = SCREEN_WIDTH * 0.75;
+const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
+
+interface UserThread {
+  userText: string;
+  dinoReply?: { username: string; avatar: string; text: string };
+  pending: boolean;
+}
 
 interface DinoPostProps {
   dinosaur: Dinosaur;
@@ -43,6 +52,51 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
   const scrollRef = useRef<ScrollView>(null);
 
   const comments = getCommentsForDino(dinosaur.id, 3);
+  const [userThreads, setUserThreads] = useState<UserThread[]>([]);
+  const [commentInput, setCommentInput] = useState("");
+  const [isPosting, setIsPosting] = useState(false);
+
+  const handleSubmitComment = useCallback(async () => {
+    const text = commentInput.trim();
+    if (!text || isPosting) return;
+    setCommentInput("");
+    setIsPosting(true);
+    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    const idx = userThreads.length;
+    setUserThreads((prev) => [...prev, { userText: text, pending: true }]);
+
+    const commenter = comments[Math.abs((dinosaur.id * 31 + idx * 7) % comments.length)];
+    try {
+      const res = await fetch(`${BASE_URL}/api/dinosaurs/${dinosaur.id}/comment-reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userComment: text,
+          commenterName: commenter.username,
+          commenterAvatar: commenter.avatar,
+          postDinoName: dinosaur.name,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserThreads((prev) =>
+          prev.map((t, i) =>
+            i === idx
+              ? { ...t, pending: false, dinoReply: { username: data.commenterName, avatar: data.commenterAvatar, text: data.reply } }
+              : t
+          )
+        );
+      } else {
+        setUserThreads((prev) => prev.map((t, i) => (i === idx ? { ...t, pending: false } : t)));
+      }
+    } catch {
+      setUserThreads((prev) => prev.map((t, i) => (i === idx ? { ...t, pending: false } : t)));
+    } finally {
+      setIsPosting(false);
+    }
+  }, [commentInput, isPosting, userThreads, comments, dinosaur]);
+
   const fossilSource = resolveImageSource(dinosaur.imageUrl);
   const realisticSource = resolveImageSource(getRealisticImageUrl(dinosaur.name));
   const slides = realisticSource
@@ -303,6 +357,65 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
                     )}
                   </View>
                 ))}
+
+                {userThreads.map((thread, i) => (
+                  <View key={`user-${i}`} style={styles.commentThread}>
+                    <View style={styles.commentRow}>
+                      <Text style={styles.commentAvatar}>🧑</Text>
+                      <View style={styles.commentBody}>
+                        <Text style={[styles.commentLine, { color: colors.foreground }]}>
+                          <Text style={styles.commentUsername}>you </Text>
+                          {thread.userText}
+                        </Text>
+                      </View>
+                    </View>
+                    {(thread.pending || thread.dinoReply) && (
+                      <View style={styles.repliesBlock}>
+                        <View style={[styles.replyThreadLine, { backgroundColor: colors.border }]} />
+                        <View style={styles.repliesInner}>
+                          {thread.pending ? (
+                            <ActivityIndicator size="small" color={colors.mutedForeground} style={{ alignSelf: "flex-start" }} />
+                          ) : thread.dinoReply ? (
+                            <View style={styles.replyRow}>
+                              <Text style={styles.replyAvatar}>{thread.dinoReply.avatar}</Text>
+                              <View style={styles.commentBody}>
+                                <Text style={[styles.commentLine, { color: colors.foreground }]}>
+                                  <Text style={styles.commentUsername}>{thread.dinoReply.username} </Text>
+                                  {thread.dinoReply.text}
+                                </Text>
+                              </View>
+                            </View>
+                          ) : null}
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                ))}
+
+                <View style={[styles.commentInputRow, { borderTopColor: colors.border }]}>
+                  <Text style={styles.commentAvatar}>🧑</Text>
+                  <TextInput
+                    style={[styles.commentInput, { color: colors.foreground, borderColor: colors.border }]}
+                    placeholder="Add a comment…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={commentInput}
+                    onChangeText={setCommentInput}
+                    onSubmitEditing={handleSubmitComment}
+                    returnKeyType="send"
+                    maxLength={300}
+                    editable={!isPosting}
+                  />
+                  <TouchableOpacity
+                    onPress={handleSubmitComment}
+                    disabled={!commentInput.trim() || isPosting}
+                    style={styles.sendBtn}
+                  >
+                    <Text style={[styles.sendBtnText, { color: commentInput.trim() && !isPosting ? "#0095F6" : colors.mutedForeground }]}>
+                      Post
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
                 <TouchableOpacity onPress={handleComments} style={styles.hideBtn}>
                   <Text style={[styles.hideBtnText, { color: colors.mutedForeground }]}>
                     Hide comments
@@ -586,5 +699,31 @@ const styles = StyleSheet.create({
   hideBtnText: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
+  },
+  commentInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 4,
+  },
+  commentInput: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    minHeight: 34,
+  },
+  sendBtn: {
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+  },
+  sendBtnText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
   },
 });

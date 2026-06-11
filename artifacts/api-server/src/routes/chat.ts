@@ -52,6 +52,67 @@ RULES:
 - NEVER break character or mention that you are an AI.`;
 }
 
+const commentReplySchema = z.object({
+  userComment: z.string().min(1).max(500),
+  commenterName: z.string().min(1).max(100),
+  commenterAvatar: z.string().min(1).max(10),
+  postDinoName: z.string().min(1).max(100),
+});
+
+router.post("/dinosaurs/:id/comment-reply", chatLimiter, async (req, res) => {
+  try {
+    const id = parseIdParam(req.params.id);
+    if (id === null) { res.status(400).json({ error: "Invalid ID" }); return; }
+
+    const parsed = commentReplySchema.safeParse(req.body);
+    if (!parsed.success) { res.status(400).json({ error: "Invalid request body" }); return; }
+
+    const { userComment, commenterName, commenterAvatar, postDinoName } = parsed.data;
+
+    if (!MINIMAX_API_KEY) { res.status(500).json({ error: "MiniMax API key not configured" }); return; }
+
+    const systemPrompt = `You are ${commenterName}, a dinosaur commenting on ${postDinoName}'s Dino IG post. A human user just left a comment and you are replying to them in the comments section.
+
+RULES:
+- Reply in 1-2 sentences MAX. This is a social media comment, not a chat.
+- Stay fully in character as ${commenterName} — sarcastic, funny, opinionated like a dinosaur on social media.
+- React directly to what the user said. Be witty and specific.
+- Use your dinosaur personality. Reference your own traits if relevant.
+- Occasionally use emojis but don't overdo it.
+- NEVER break character or mention AI.
+- Keep it light, funny, and short — like a real Instagram comment.`;
+
+    const response = await fetch(`${MINIMAX_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${MINIMAX_API_KEY}` },
+      body: JSON.stringify({
+        model: "MiniMax-Text-01",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userComment },
+        ],
+        max_tokens: 100,
+        temperature: 0.9,
+      }),
+    });
+
+    if (!response.ok) {
+      req.log.error({ status: response.status }, "MiniMax error for comment reply");
+      res.status(502).json({ error: "AI service error" });
+      return;
+    }
+
+    const data = (await response.json()) as { choices: { message: { content: string } }[] };
+    const reply = data.choices?.[0]?.message?.content?.trim();
+    if (!reply) { res.status(502).json({ error: "Empty response from AI" }); return; }
+
+    res.json({ reply, commenterName, commenterAvatar });
+  } catch (err) {
+    req.log.error({ err }, "Comment reply error");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/dinosaurs/:id/chat", chatLimiter, async (req, res) => {
   try {
     const id = parseIdParam(req.params.id);
