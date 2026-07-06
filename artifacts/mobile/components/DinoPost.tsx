@@ -326,6 +326,31 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
             {showComments && (
               <View style={styles.commentsSection}>
                 <View style={[styles.commentsDivider, { backgroundColor: colors.border }]} />
+
+                <View style={[styles.commentInputRow, { backgroundColor: colors.searchBg, borderTopColor: colors.border }]}>
+                  <Text style={styles.commentAvatar}>🧑</Text>
+                  <TextInput
+                    style={[styles.commentInput, { color: colors.foreground, backgroundColor: colors.background, borderColor: colors.border }]}
+                    placeholder="Add a comment…"
+                    placeholderTextColor={colors.mutedForeground}
+                    value={commentInput}
+                    onChangeText={setCommentInput}
+                    onSubmitEditing={handleSubmitComment}
+                    returnKeyType="send"
+                    maxLength={300}
+                    editable={!isPosting}
+                  />
+                  <TouchableOpacity
+                    onPress={handleSubmitComment}
+                    disabled={!commentInput.trim() || isPosting}
+                    style={styles.sendBtn}
+                  >
+                    <Text style={[styles.sendBtnText, { color: commentInput.trim() && !isPosting ? "#0095F6" : colors.mutedForeground }]}>
+                      Post
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
                 {comments.map((c, i) => (
                   <View key={i} style={styles.commentThread}>
                     <View style={styles.commentRow}>
@@ -391,30 +416,6 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
                     )}
                   </View>
                 ))}
-
-                <View style={[styles.commentInputRow, { borderTopColor: colors.border }]}>
-                  <Text style={styles.commentAvatar}>🧑</Text>
-                  <TextInput
-                    style={[styles.commentInput, { color: colors.foreground, borderColor: colors.border }]}
-                    placeholder="Add a comment…"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={commentInput}
-                    onChangeText={setCommentInput}
-                    onSubmitEditing={handleSubmitComment}
-                    returnKeyType="send"
-                    maxLength={300}
-                    editable={!isPosting}
-                  />
-                  <TouchableOpacity
-                    onPress={handleSubmitComment}
-                    disabled={!commentInput.trim() || isPosting}
-                    style={styles.sendBtn}
-                  >
-                    <Text style={[styles.sendBtnText, { color: commentInput.trim() && !isPosting ? "#0095F6" : colors.mutedForeground }]}>
-                      Post
-                    </Text>
-                  </TouchableOpacity>
-                </View>
 
                 <TouchableOpacity onPress={handleComments} style={styles.hideBtn}>
                   <Text style={[styles.hideBtnText, { color: colors.mutedForeground }]}>
@@ -704,9 +705,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingTop: 10,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
     marginTop: 4,
+    marginBottom: 8,
   },
   commentInput: {
     flex: 1,
