@@ -71,3 +71,9 @@ id = "5sExCktaWBU6iVgNlm7Lu"
 uri = "file://attached_assets/generated_videos/triceratops-reel.mp4"
 type = "video"
 title = "Triceratops Reel — preview clip"
+
+[[outputs]]
+id = "eYX6hRG1beSz_ue5wpRzl"
+uri = "file://attached_assets/generated_videos/triceratops-reel-v2.mp4"
+type = "video"
+title = "Triceratops Reel v2"
