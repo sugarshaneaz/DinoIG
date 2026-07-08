@@ -31,12 +31,33 @@ const IMAGES_DIR = path.resolve(
 );
 
 const USER_AGENT = "DinoIG/1.0 (https://github.com/sugarshaneaz/DinoIG)";
-const THROTTLE_MS = 400;
+const THROTTLE_MS = 2000;
+const MAX_RETRIES = 4;
 
 function extensionFromUrl(url: string): string {
   const cleaned = url.split("?")[0];
   const match = cleaned.match(/\.(jpe?g|png|gif|webp)$/i);
   return (match?.[1] ?? "jpg").toLowerCase().replace("jpeg", "jpg");
+}
+
+async function fetchWithBackoff(url: string): Promise<Response> {
+  let attempt = 0;
+  while (true) {
+    const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+    if (res.status !== 429 || attempt >= MAX_RETRIES) return res;
+
+    const retryAfterHeader = res.headers.get("retry-after");
+    const retryAfterSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : NaN;
+    const backoffMs = !isNaN(retryAfterSec)
+      ? retryAfterSec * 1000
+      : Math.min(60_000, 5_000 * 2 ** attempt);
+
+    console.warn(
+      `    ⏳ 429 — waiting ${Math.round(backoffMs / 1000)}s before retry #${attempt + 1}`,
+    );
+    await new Promise((r) => setTimeout(r, backoffMs));
+    attempt++;
+  }
 }
 
 async function downloadOne(
@@ -54,9 +75,7 @@ async function downloadOne(
     // not on disk yet, continue
   }
 
-  const res = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT },
-  });
+  const res = await fetchWithBackoff(url);
 
   if (!res.ok) {
     console.warn(
