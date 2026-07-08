@@ -65,3 +65,9 @@ id = "cJ1tasaJjQN9CVfGE7BhE"
 uri = "file://attached_assets/generated_videos/trex-reel.mp4"
 type = "video"
 title = "T-Rex Reel — preview clip"
+
+[[outputs]]
+id = "5sExCktaWBU6iVgNlm7Lu"
+uri = "file://attached_assets/generated_videos/triceratops-reel.mp4"
+type = "video"
+title = "Triceratops Reel — preview clip"
