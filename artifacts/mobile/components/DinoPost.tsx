@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     width: 2,
     borderRadius: 1,
     marginRight: 14,
-    minHeight: "100%",
+    alignSelf: "stretch",
   },
   repliesInner: {
     flex: 1,
