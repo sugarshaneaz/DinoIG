@@ -95,3 +95,9 @@ id = "ye6Ok4ZuzSW12vZQqavlD"
 uri = "file://attached_assets/generated_videos/velociraptor-reel-v2.mp4"
 type = "video"
 title = "Velociraptor Pack Hunt v2"
+
+[[outputs]]
+id = "Ze6s2UHO0Yoy8aKzSoaqE"
+uri = "file://attached_assets/generated_videos/velociraptor-reel-v3.mp4"
+type = "video"
+title = "Velociraptor Pack Hunt v3"
