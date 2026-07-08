@@ -101,3 +101,9 @@ id = "Ze6s2UHO0Yoy8aKzSoaqE"
 uri = "file://attached_assets/generated_videos/velociraptor-reel-v3.mp4"
 type = "video"
 title = "Velociraptor Pack Hunt v3"
+
+[[outputs]]
+id = "t5So3nDEKyldZXq0asVXX"
+uri = "file://attached_assets/generated_videos/stegosaurus-reel.mp4"
+type = "video"
+title = "Stegosaurus Herd Stampede Reel"
