@@ -83,3 +83,9 @@ id = "ncIW4GznJP3j-_bQxbkrd"
 uri = "file://attached_assets/generated_videos/brachiosaurus-reel.mp4"
 type = "video"
 title = "Brachiosaurus Reel"
+
+[[outputs]]
+id = "v1YSVHECbtQxvlVMWeQZa"
+uri = "file://attached_assets/generated_videos/velociraptor-reel.mp4"
+type = "video"
+title = "Velociraptor Pack Hunt Reel"
