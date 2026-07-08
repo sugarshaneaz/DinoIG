@@ -107,3 +107,9 @@ id = "t5So3nDEKyldZXq0asVXX"
 uri = "file://attached_assets/generated_videos/stegosaurus-reel.mp4"
 type = "video"
 title = "Stegosaurus Herd Stampede Reel"
+
+[[outputs]]
+id = "PGTxsyZyqakH3uUN1lFTe"
+uri = "file://attached_assets/generated_videos/ankylosaurus-reel.mp4"
+type = "video"
+title = "Ankylosaurus vs T-Rex Reel"
