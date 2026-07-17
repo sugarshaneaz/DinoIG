@@ -131,3 +131,9 @@ id = "fgmFRpjTqyWv6f0ltEf2c"
 uri = "file://attached_assets/generated_videos/pterodactyl-reel.mp4"
 type = "video"
 title = "Pterodactyl Reel"
+
+[[outputs]]
+id = "m_O7o1hWgFwZu4VqG034H"
+uri = "file://attached_assets/generated_videos/pterodactyl-reel-v2.mp4"
+type = "video"
+title = "Pterodactyl Reel v2"
