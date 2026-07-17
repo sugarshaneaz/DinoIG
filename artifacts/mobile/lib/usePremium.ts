@@ -19,7 +19,8 @@ export function usePremium() {
   // configured or no products in the dashboard). The paywall reactivates
   // automatically once real offerings load.
   const hasOfferings = !!offerings?.current?.availablePackages?.length;
-  const isPremium = isSubscribed || (!isLoading && !hasOfferings);
+  const isPremium = true; // paywall disabled for preview — re-enable before launch
+  void isSubscribed; void hasOfferings;
 
   return { isPremium, loading: isLoading, unlock };
 }
