@@ -125,3 +125,9 @@ id = "krDtPjZzJK0yRF-QfwQsH"
 uri = "file://attached_assets/generated_videos/ankylosaurus-reel-v3.mp4"
 type = "video"
 title = "Ankylosaurus vs T-Rex v3"
+
+[[outputs]]
+id = "fgmFRpjTqyWv6f0ltEf2c"
+uri = "file://attached_assets/generated_videos/pterodactyl-reel.mp4"
+type = "video"
+title = "Pterodactyl Reel"
