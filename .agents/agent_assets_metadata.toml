@@ -161,3 +161,9 @@ id = "rz6EJDcdxVZRIRS42MT_n"
 uri = "file://attached_assets/generated_videos/abelisaurus-reel-v2.mp4"
 type = "video"
 title = "Abelisaurus vs Spinosaurus"
+
+[[outputs]]
+id = "HwBA7QS7MyyokBIAN0F1-"
+uri = "file://attached_assets/generated_videos/abelisaurus-reel-v3.mp4"
+type = "video"
+title = "Abelisaurus vs Spinosaurus v3"
