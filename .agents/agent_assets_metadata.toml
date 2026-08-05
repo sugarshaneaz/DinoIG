@@ -173,3 +173,80 @@ id = "7Q70tdGQjkJUDaZCZ-rzT"
 uri = "file://attached_assets/generated_videos/abelisaurus-reel-v4.mp4"
 type = "video"
 title = "Abelisaurus vs Spinosaurus v4"
+
+[[outputs]]
+id = "fX_9VajO53MI46hcP_4Lv"
+uri = "file://attached_assets/generated_videos/abelisaurus-reel-v5.mp4"
+type = "video"
+title = "Abelisaurus Reel"
+description = "Abelisaurus stalking through prehistoric mist and charging at the camera."
+
+[[outputs]]
+id = "0StmAc-6_W3WbBbswDKkW"
+uri = "file://attached_assets/generated_videos/achelousaurus-reel.mp4"
+type = "video"
+title = "Achelousaurus"
+description = "Two Achelousaurus locking heads in a shoving match on a prehistoric plain."
+
+[[outputs]]
+id = "Xpa_OGLcFOpUaNAFnD8ZP"
+uri = "file://attached_assets/generated_videos/achillobator-reel.mp4"
+type = "video"
+title = "Achillobator"
+description = "Achillobator sprinting and slashing with its sickle claw through a prehistoric jungle."
+
+[[outputs]]
+id = "YOLNeB7R51OWRgXT4ADYo"
+uri = "file://attached_assets/generated_videos/acrocanthosaurus-reel.mp4"
+type = "video"
+title = "Acrocanthosaurus"
+description = "Acrocanthosaurus stalking through foggy river delta and roaring."
+
+[[outputs]]
+id = "RvuM-FTBmo6KNbgom5r_n"
+uri = "file://attached_assets/generated_videos/aegyptosaurus-reel.mp4"
+type = "video"
+title = "Aegyptosaurus"
+description = "Aegyptosaurus wading through a North African river at golden hour."
+
+[[outputs]]
+id = "dwS-D-g83OaUGAef8DkL2"
+uri = "file://attached_assets/generated_videos/afrovenator-reel.mp4"
+type = "video"
+title = "Afrovenator"
+description = "Afrovenator hunting along an African riverbank at dusk."
+
+[[outputs]]
+id = "YPZtv0A89m2GaAN5lUVyZ"
+uri = "file://attached_assets/generated_videos/agilisaurus-reel.mp4"
+type = "video"
+title = "Agilisaurus"
+description = "Agilisaurus darting through a prehistoric fern forest."
+
+[[outputs]]
+id = "ShJ2Dfiw-kbW0lnqw6_Sd"
+uri = "file://attached_assets/generated_videos/alamosaurus-reel.mp4"
+type = "video"
+title = "Alamosaurus"
+description = "Alamosaurus sweeping its massive neck through treetops at sunset."
+
+[[outputs]]
+id = "gO9U1kSHGCR_fOKUbS4E7"
+uri = "file://attached_assets/generated_videos/albertaceratops-reel.mp4"
+type = "video"
+title = "Albertaceratops"
+description = "Albertaceratops standing proudly on a hilltop in golden hour light."
+
+[[outputs]]
+id = "sfMcweneMs8_padYbenTZ"
+uri = "file://attached_assets/generated_videos/albertosaurus-reel.mp4"
+type = "video"
+title = "Albertosaurus"
+description = "Albertosaurus sprinting after a hadrosaur herd across a prehistoric floodplain."
+
+[[outputs]]
+id = "XtEzdXWFldF40tGyuXEAG"
+uri = "file://attached_assets/generated_videos/alectrosaurus-reel.mp4"
+type = "video"
+title = "Alectrosaurus"
+description = "Alectrosaurus prowling across a prehistoric Gobi Desert at dusk."
