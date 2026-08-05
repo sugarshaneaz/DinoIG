@@ -29,30 +29,73 @@ const IMAGE_HEIGHT = SCREEN_WIDTH * 0.75;
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 
 function ReelSlide({ uri, isActive }: { uri: string; isActive: boolean }) {
+  const [playing, setPlaying] = useState(false);
   const player = useVideoPlayer(uri, (p) => {
     p.loop = true;
     p.muted = false;
   });
 
+  // Pause whenever this slide is no longer in view
   useEffect(() => {
-    if (isActive) {
-      player.play();
-    } else {
+    if (!isActive) {
       player.pause();
+      setPlaying(false);
     }
   }, [isActive, player]);
 
+  const handleTap = useCallback(() => {
+    if (playing) {
+      player.pause();
+      setPlaying(false);
+    } else {
+      player.play();
+      setPlaying(true);
+    }
+  }, [playing, player]);
+
   return (
-    <View style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT, backgroundColor: "#000" }}>
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={handleTap}
+      style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT, backgroundColor: "#000" }}
+    >
       <VideoView
         player={player}
         style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
         nativeControls={false}
         contentFit="contain"
       />
-    </View>
+      {!playing && (
+        <View style={reelStyles.playOverlay} pointerEvents="none">
+          <View style={reelStyles.playBtn}>
+            <Text style={reelStyles.playIcon}>▶</Text>
+          </View>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
+
+const reelStyles = StyleSheet.create({
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playIcon: {
+    color: "#FFFFFF",
+    fontSize: 26,
+    marginLeft: 4,
+  },
+});
 
 interface UserThread {
   userText: string;
