@@ -16,6 +16,7 @@ export interface Dinosaur {
   period: string;
   diet: string;
   imageUrl?: string | null;
+  reelUrl?: string | null;
   likesCount: number;
   createdAt: string;
   updatedAt: string;

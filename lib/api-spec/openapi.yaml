@@ -256,6 +256,9 @@ components:
         imageUrl:
           type: string
           nullable: true
+        reelUrl:
+          type: string
+          nullable: true
         likesCount:
           type: integer
         createdAt:

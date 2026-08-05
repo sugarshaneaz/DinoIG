@@ -250,3 +250,157 @@ uri = "file://attached_assets/generated_videos/alectrosaurus-reel.mp4"
 type = "video"
 title = "Alectrosaurus"
 description = "Alectrosaurus prowling across a prehistoric Gobi Desert at dusk."
+
+[[outputs]]
+id = "AQ00dfktS0CBCIbKssUT4"
+uri = "file://attached_assets/generated_audio/sfx_triceratops.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Triceratops charging hooves pounding dirt, bone-crunching horn impact, deep grunts and snorts, dust and rocks scattering"
+
+[[outputs]]
+id = "lrgW2EVJbWvRav5Bpihny"
+uri = "file://attached_assets/generated_audio/sfx_brachiosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive sauropod dinosaur low deep rumbling belly groans, enormous slow footsteps thudding the earth, tree branches snapping and leaves crunching, prehistoric river water"
+
+[[outputs]]
+id = "WQJgv0ZfirdssW4AvTNrV"
+uri = "file://attached_assets/generated_audio/sfx_velociraptor.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Pack of velociraptors clicking and chirping, hissing, fast clawed feet scratching ground, feathers rustling, attack screech, prey struggling"
+
+[[outputs]]
+id = "UGkTFa4iC7ACW0xadW6cb"
+uri = "file://attached_assets/generated_audio/sfx_abelisaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Large predatory dinosaur stalking through misty forest, slow heavy footsteps, deep growling breaths, sudden explosive thunderous roar echoing across a valley"
+
+[[outputs]]
+id = "4QZVcnFHIz7W0_PBxVIUN"
+uri = "file://attached_assets/generated_audio/sfx_trex.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive T-Rex thunderous roar echoing through prehistoric jungle, heavy ground-shaking footsteps, deep rumbling growls, leaves rustling from the shockwave"
+
+[[outputs]]
+id = "oYvhNHSJt5LD32hNhfQSS"
+uri = "file://attached_assets/generated_audio/sfx_pterodactyl.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Pterodactyl screeching cry, large leathery wings flapping, diving wind rush, water splash as it snatches a fish, then powerful wingbeats flying away"
+
+[[outputs]]
+id = "e8FW4BqxOjWtwCbPtCt94"
+uri = "file://attached_assets/generated_audio/sfx_aardonyx.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Large dinosaur eating plants, leaves tearing and crunching, sudden predator attack roar, crashing through underbrush, prehistoric jungle ambience"
+
+[[outputs]]
+id = "Mthc4ActBYqqErmik2034"
+uri = "file://attached_assets/generated_audio/sfx_ankylosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Ankylosaurus tail club whooshing through air and slamming into bone with a massive thud, T-Rex roaring in pain and falling, heavy body crash to ground, prehistoric jungle ambi…"
+
+[[outputs]]
+id = "oWgnVsx-RWTRhtNu6enpM"
+uri = "file://attached_assets/generated_audio/sfx_stegosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive herd stampede of hundreds of dinosaurs, thunderous hooves pounding the ground, low rumbles, earth shaking, dust rising, herd bellowing"
+
+[[outputs]]
+id = "iMQDgOk14DOjdYWU6w3XJ"
+uri = "file://attached_assets/generated_audio/sfx_achillobator.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Feathered raptor sprinting at high speed, clawed feet scratching ground rapidly, feathers rustling in wind, explosive leap and slashing attack screech"
+
+[[outputs]]
+id = "C3qyENY8zFlv01MS4wVYv"
+uri = "file://attached_assets/generated_audio/sfx_aegyptosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Colossal sauropod dinosaur splashing and wading through a wide shallow river, deep resonant low groans, water rushing around pillar-like legs, prehistoric birds calling"
+
+[[outputs]]
+id = "bJ5s5iPfG7Ixys4LSJ0Sc"
+uri = "file://attached_assets/generated_audio/sfx_achelousaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Two horned dinosaurs charging each other, bone-on-bone impact crash, grunting and shoving, heavy footsteps, prehistoric plain wind, thunder rumbling"
+
+[[outputs]]
+id = "OLMyZEQ5FH_4s0TIlvvVd"
+uri = "file://attached_assets/generated_audio/sfx_alamosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Enormous sauropod dinosaur footsteps shaking the ground like earthquakes, massive neck sweeping through treetops snapping branches, deep belly groans, predator approaching gro…"
+
+[[outputs]]
+id = "3wDWpfXnJNCk44NaIyIbV"
+uri = "file://attached_assets/generated_audio/sfx_agilisaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Small quick dinosaur light footsteps pattering through fern forest, leaves rustling, small animal nibbling and chirping, then sudden startled sprint of tiny feet"
+
+[[outputs]]
+id = "Pj_PM4xqH-Rw-ihoSZh7H"
+uri = "file://attached_assets/generated_audio/sfx_afrovenator.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Predatory dinosaur stalking silently through reeds by a river, sudden explosive pounce, prey squawking and struggling, splashing water, prehistoric African night ambience"
+
+[[outputs]]
+id = "3N2nSeFS9e-PiETKbvjk9"
+uri = "file://attached_assets/generated_audio/sfx_alectrosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Predatory dinosaur footsteps crunching across desert sand, hot dry wind blowing across barren dunes, low guttural growl, distant prehistoric desert ambience"
+
+[[outputs]]
+id = "qJYKjGbVCuNnuYun6MFUq"
+uri = "file://attached_assets/generated_audio/sfx_acrocanthosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive carnivorous dinosaur footsteps splashing through swamp water, deep foggy prehistoric ambience, sudden earth-shaking thunderous roar, frogs and insects going silent"
+
+[[outputs]]
+id = "4ehnPfgjPydjFAddmJoyP"
+uri = "file://attached_assets/generated_audio/sfx_albertosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Large tyrannosaur sprinting at full speed, powerful footsteps pounding floodplain, hadrosaurs honking and stampeding in panic, roar of the predator, thundering chase"
+
+[[outputs]]
+id = "G_qb2eMHP-9FggT2G1k0u"
+uri = "file://attached_assets/generated_audio/sfx_albertaceratops.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Ceratopsian dinosaur standing on windy hilltop, grass rustling in breeze, deep snorting breaths, head shaking with frill rattling, distant prehistoric bird calls"
+
+[[outputs]]
+id = "CJpggYHIgDWxyRqE-YkJ7"
+uri = "file://attached_assets/generated_videos/trex-reel-audio.mp4"
+type = "video"
+title = "T-Rex (with sound)"
+description = "T-Rex reel with roar and jungle ambience audio."
+
+[[outputs]]
+id = "hFKlvb9MR00TwGtj7jOVZ"
+uri = "file://attached_assets/generated_videos/velociraptor-reel-audio.mp4"
+type = "video"
+title = "Velociraptor (with sound)"
+description = "Velociraptor pack hunt reel with attack sounds."
+
+[[outputs]]
+id = "2UUvQVnisU__PVbfh8GAN"
+uri = "file://attached_assets/generated_videos/pterodactyl-reel-audio.mp4"
+type = "video"
+title = "Pterodactyl (with sound)"
+description = "Pterodactyl dive reel with wing flaps and water splash."

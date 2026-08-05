@@ -9,6 +9,7 @@ export const dinosaursTable = pgTable("dinosaurs", {
   period: text("period").notNull().default("Unknown"),
   diet: text("diet").notNull().default("Unknown"),
   imageUrl: text("image_url"),
+  reelUrl: text("reel_url"),
   likesCount: integer("likes_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

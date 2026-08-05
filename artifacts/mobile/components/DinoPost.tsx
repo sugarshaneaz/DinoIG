@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
   NativeScrollEvent,
 } from "react-native";
 import { Image } from "expo-image";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -26,6 +27,32 @@ import { getRealisticImageUrl } from "@/lib/realisticImages";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const IMAGE_HEIGHT = SCREEN_WIDTH * 0.75;
 const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
+
+function ReelSlide({ uri, isActive }: { uri: string; isActive: boolean }) {
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = true;
+    p.muted = false;
+  });
+
+  useEffect(() => {
+    if (isActive) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [isActive, player]);
+
+  return (
+    <View style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT, backgroundColor: "#000" }}>
+      <VideoView
+        player={player}
+        style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
+        nativeControls={false}
+        contentFit="contain"
+      />
+    </View>
+  );
+}
 
 interface UserThread {
   userText: string;
@@ -99,14 +126,21 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
 
   const fossilSource = resolveImageSource(dinosaur.imageUrl);
   const realisticSource = resolveImageSource(getRealisticImageUrl(dinosaur.name));
-  const slides = realisticSource
-    ? [
-        { source: realisticSource, label: "Life restoration" },
-        { source: fossilSource, label: "Fossil" },
-      ]
-    : fossilSource
-    ? [{ source: fossilSource, label: null }]
-    : [];
+  const reelUri = dinosaur.reelUrl
+    ? dinosaur.reelUrl.startsWith("http")
+      ? dinosaur.reelUrl
+      : `${BASE_URL}${dinosaur.reelUrl}`
+    : null;
+
+  type Slide =
+    | { kind: "image"; source: ReturnType<typeof resolveImageSource>; label: string | null }
+    | { kind: "reel"; uri: string; label: string };
+
+  const slides: Slide[] = [
+    ...(realisticSource ? [{ kind: "image" as const, source: realisticSource, label: "Life restoration" }] : []),
+    ...(fossilSource ? [{ kind: "image" as const, source: fossilSource, label: "Fossil" }] : []),
+    ...(reelUri ? [{ kind: "reel" as const, uri: reelUri, label: "Reel" }] : []),
+  ];
 
   const { mutate: likeDino } = useLikeDinosaur({
     mutation: {
@@ -218,15 +252,26 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
                 </View>
               </TouchableOpacity>
             ) : slides.length === 1 ? (
-              <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.slideTouch}>
-                <Image
-                  source={slides[0].source ?? undefined}
-                  style={styles.image}
-                  contentFit="contain"
-                  cachePolicy="memory-disk"
-                  transition={150}
-                />
-              </TouchableOpacity>
+              <View style={styles.slideTouch}>
+                {slides[0].kind === "reel" ? (
+                  <ReelSlide uri={slides[0].uri} isActive={true} />
+                ) : (
+                  <TouchableOpacity activeOpacity={0.95} onPress={onPress} style={styles.slideTouch}>
+                    <Image
+                      source={slides[0].source ?? undefined}
+                      style={styles.image}
+                      contentFit="contain"
+                      cachePolicy="memory-disk"
+                      transition={150}
+                    />
+                  </TouchableOpacity>
+                )}
+                {slides[0].label && (
+                  <View style={styles.slideLabel}>
+                    <Text style={styles.slideLabelText}>{slides[0].label}</Text>
+                  </View>
+                )}
+              </View>
             ) : (
               <>
                 <ScrollView
@@ -240,25 +285,30 @@ export function DinoPost({ dinosaur, onPress, onLiked, isLocked = false, onLocke
                   contentContainerStyle={styles.carouselContent}
                 >
                   {slides.map((slide, i) => (
-                    <TouchableOpacity
-                      key={i}
-                      activeOpacity={0.95}
-                      onPress={onPress}
-                      style={styles.slideTouch}
-                    >
-                      <Image
-                        source={slide.source ?? undefined}
-                        style={styles.image}
-                        contentFit="contain"
-                        cachePolicy="memory-disk"
-                        transition={150}
-                      />
+                    <View key={i} style={styles.slideTouch}>
+                      {slide.kind === "reel" ? (
+                        <ReelSlide uri={slide.uri} isActive={activeSlide === i} />
+                      ) : (
+                        <TouchableOpacity
+                          activeOpacity={0.95}
+                          onPress={onPress}
+                          style={styles.slideTouch}
+                        >
+                          <Image
+                            source={slide.source ?? undefined}
+                            style={styles.image}
+                            contentFit="contain"
+                            cachePolicy="memory-disk"
+                            transition={150}
+                          />
+                        </TouchableOpacity>
+                      )}
                       {slide.label && (
                         <View style={styles.slideLabel}>
                           <Text style={styles.slideLabelText}>{slide.label}</Text>
                         </View>
                       )}
-                    </TouchableOpacity>
+                    </View>
                   ))}
                 </ScrollView>
                 <View style={styles.dots} pointerEvents="none">

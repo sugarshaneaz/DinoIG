@@ -68,6 +68,15 @@ app.use(
   express.static(path.join(__dirname, "../public/images")),
 );
 
+app.use(
+  "/api/videos",
+  express.static(path.join(__dirname, "../public/videos"), {
+    setHeaders: (res) => {
+      res.setHeader("Accept-Ranges", "bytes");
+    },
+  }),
+);
+
 app.use("/api", globalLimiter, router);
 
 const notFoundHandler: RequestHandler = (_req, res) => {
