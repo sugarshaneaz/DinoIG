@@ -404,3 +404,143 @@ uri = "file://attached_assets/generated_videos/pterodactyl-reel-audio.mp4"
 type = "video"
 title = "Pterodactyl (with sound)"
 description = "Pterodactyl dive reel with wing flaps and water splash."
+
+[[outputs]]
+id = "zoxMU6Y8uWAe5TWiLXuXh"
+uri = "file://attached_assets/generated_audio/sfx_alioramus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Lean tyrannosaur sprinting across desert sand, rasping breath, clawed feet pounding dry earth, prey squealing, Gobi desert wind"
+
+[[outputs]]
+id = "YK2NRokZe2qepzRVOBQ9e"
+uri = "file://attached_assets/generated_audio/sfx_apatosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive tail crack like a thunderous bullwhip, Allosaurus shrieking and tumbling, enormous sauropod footsteps shaking ground, Late Jurassic forest ambience"
+
+[[outputs]]
+id = "qMqgyuy6XxiLN8fq7fiBx"
+uri = "file://attached_assets/generated_audio/sfx_amargasaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Sauropod spine rows rattling, deep booming call, lush jungle ambience, predator crashing through underbrush, Patagonian forest birds scattering"
+
+[[outputs]]
+id = "NhbQ4MJZVSFBh5AQsJVm9"
+uri = "file://attached_assets/generated_audio/sfx_allosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive Allosaurus leaping and slashing with huge claws, sauropod bellowing in pain, bone crunching impact, red canyon wind, prehistoric roar"
+
+[[outputs]]
+id = "0UiWSaNQZrbC1enpFzs4B"
+uri = "file://attached_assets/generated_audio/sfx_anserimimus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Three ostrich-like dinosaurs sprinting at extreme speed across flat steppe, rapid drumming footsteps, Mongolian wind rushing past, panting breath"
+
+[[outputs]]
+id = "v2wI0kswCeNYcjVatQ05d"
+uri = "file://attached_assets/generated_audio/sfx_anchiceratops.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Ceratopsian charging grunt, horn impact into predator flesh, tyrannosaur roaring in pain, Alberta badlands wind, hooves pounding dry ground, triumphant snort"
+
+[[outputs]]
+id = "-iM13gC3VhpfeZifU56yo"
+uri = "file://attached_assets/generated_audio/sfx_argentinosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Earthquake footsteps from colossal dinosaur, earth rumbling and cracking, smaller predators screaming as they're crushed, deep subsonic bellowing, Patagonian plains wind"
+
+[[outputs]]
+id = "2_pVV1durCuxH4Iiiq28J"
+uri = "file://attached_assets/generated_audio/sfx_alvarezsaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Tiny dinosaur furiously digging termite mound, clicking claws, insect buzzing, tongue flicking, then sudden sprint of tiny quick feet on dry Argentine ground, predator shadow"
+
+[[outputs]]
+id = "uJvHQzcof4yRyQvF7zhFy"
+uri = "file://attached_assets/generated_audio/sfx_aucasaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Pack of three predators coordinating attack, hissing and chirping signals, explosive simultaneous attack, prey bellowing, Argentinian scrubland cicadas"
+
+[[outputs]]
+id = "Zqu72cGwKXQGA9GiBlVdF"
+uri = "file://attached_assets/generated_audio/sfx_archaeopteryx.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Small bird-like dinosaur launching from rock, wing beats over shimmering lagoon water, dragonfly wings buzzing, snap of jaws catching insect, Jurassic lagoon ambience"
+
+[[outputs]]
+id = "QVHBl7jAqZI9VVhWouivJ"
+uri = "file://attached_assets/generated_audio/sfx_ammosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Small sauropod rearing up on hind legs, powerful kick landing on predator, predator yelping and tumbling, landing with a crash, Arizona desert canyon echo, running footsteps f…"
+
+[[outputs]]
+id = "I3e1AemOZRP82lcvov9SB"
+uri = "file://attached_assets/generated_audio/sfx_anchisaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Small dinosaur darting between tree roots, predators snapping just behind, leaves rustling frantically, tiny quick footsteps on forest floor, Early Jurassic insects and frogs"
+
+[[outputs]]
+id = "TLmBbKACooTf3724LD6xc"
+uri = "file://attached_assets/generated_audio/sfx_ampelosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Bony armor plates deflecting predator bite with a clang, tail slam sending predator flying, predator crashing into trees, European prehistoric forest birds panicking"
+
+[[outputs]]
+id = "nhDp08EFhEqZQZuFf_yKw"
+uri = "file://attached_assets/generated_audio/sfx_amygdalodon.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive sauropod herd stampeding across Patagonian plains, thunderous earth-shaking footsteps, thunder cracking overhead, lightning, dozens of animals bellowing, wind howling"
+
+[[outputs]]
+id = "laC-QiOo6GgiA2ZCTpp0J"
+uri = "file://attached_assets/generated_audio/sfx_aragosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Massive sauropod rearing up on hind legs, deafening crash as front legs land shaking the earth, predators screaming and fleeing, Spanish prehistoric forest birds scattering"
+
+[[outputs]]
+id = "QnCeanbq5dHWRk_EDnXW6"
+uri = "file://attached_assets/generated_audio/sfx_antarctosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Enormous sauropod wading through deep river, massive water displacement splashing, deep belly groans, predator roaring from bank, giant neck swinging, fish splashing"
+
+[[outputs]]
+id = "cc5pQnPndLliWRKRGcq7e"
+uri = "file://attached_assets/generated_audio/sfx_aralosaurus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Hadrosaur hollow crest call amplified and echoing across water, herd stampeding into shallow sea, massive splashing and churning water, Central Asian shore ambience, panicked …"
+
+[[outputs]]
+id = "nyN3npX5jLJNfw7PqU3Ha"
+uri = "file://attached_assets/generated_audio/sfx_archaeoceratops.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Tiny dinosaur scurrying through forest floor leaves, insect clicking, small frill rattling and puffing up, tiny fierce hiss at large predator, predator confused grunt backing …"
+
+[[outputs]]
+id = "RmzliYVQCv7jhi0cC7Lrn"
+uri = "file://attached_assets/generated_audio/sfx_arrhinoceratops.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Two large ceratopsians clashing frills together with massive impact, horn-on-bone grinding and shoving, grunting effort, dust clouds, earth shaking, Alberta badlands wind, one…"
+
+[[outputs]]
+id = "m-NRikFNyJWYc5v8H1Il7"
+uri = "file://attached_assets/generated_audio/sfx_archaeornithomimus.mp3"
+type = "audio"
+title = "sound_effect"
+description = "Generated sound effect: Extremely fast dinosaur running at full sprint, rapid light footsteps, wind rushing past at speed, larger predator pounding behind, leap across rocky gulch, triumphant pause, …"
