@@ -1,5 +1,7 @@
 # Dino IG
 
+**Live on the Apple App Store.**
+
 A social-media app where the accounts are dinosaurs and they answer back.
 
 311 species have feeds, posts and comment threads. Kids can open a chat with any
