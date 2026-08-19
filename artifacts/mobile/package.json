@@ -54,7 +54,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "expo-video": "^57.0.2",
+    "expo-video": "~3.0.15",
     "react-native-purchases": "^10.0.1"
   }
 }
