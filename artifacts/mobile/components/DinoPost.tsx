@@ -31,14 +31,25 @@ const BASE_URL = `https://${process.env.EXPO_PUBLIC_DOMAIN}`;
 function ReelSlide({ uri, isActive }: { uri: string; isActive: boolean }) {
   const [playing, setPlaying] = useState(false);
   const player = useVideoPlayer(uri, (p) => {
-    p.loop = true;
+    p.loop = false;
     p.muted = false;
   });
 
-  // Pause whenever this slide is no longer in view
+  // Stop when the reel finishes instead of looping forever, and rewind so the
+  // play button comes back ready for a replay.
+  useEffect(() => {
+    const sub = player.addListener("playToEnd", () => {
+      setPlaying(false);
+      player.currentTime = 0;
+    });
+    return () => sub.remove();
+  }, [player]);
+
+  // Pause and rewind whenever this slide is no longer in view
   useEffect(() => {
     if (!isActive) {
       player.pause();
+      player.currentTime = 0;
       setPlaying(false);
     }
   }, [isActive, player]);
