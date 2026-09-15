@@ -71,6 +71,11 @@ app.use(
 app.use(
   "/api/videos",
   express.static(path.join(__dirname, "../public/videos"), {
+    // Reels are immutable — a given dinosaur's clip never changes in place, a
+    // new one would ship under a new filename. Caching them for a year means a
+    // reel is downloaded once per device instead of on every replay.
+    maxAge: "1y",
+    immutable: true,
     setHeaders: (res) => {
       res.setHeader("Accept-Ranges", "bytes");
     },
